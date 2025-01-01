@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+   Info.plist
+   CalorieCalculator
+
+   Created by Abhibhav RajSingh on 31/12/24.
+   Copyright (c) 2024 ___ORGANIZATIONNAME___. All rights reserved.
+-->
+<plist version="1.0">
+<dict>
+    <key>NSCameraUsageDescription</key>
+    <string>This app uses the camera to scan barcodes for food information</string>
+    
+    <key>CFBundleIdentifier</key>
+    <string>SAR.CalorieCalculator</string>
+    
+    <key>CFBundleName</key>
+    <string>CalorieCalculator</string>
+    
+    <key>CFBundleDisplayName</key>
+    <string>Calorie Calculator</string>
+    
+    <key>CFBundleExecutable</key>
+    <string>CalorieCalculator</string>
+
+    <!-- Add the CFBundleVersion for build number -->
+    <key>CFBundleVersion</key>
+    <string>1.0.0</string>
+
+    <!-- Optionally add CFBundleShortVersionString for the app version -->
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    
+    <!-- Configure Launch Screen -->
+    <key>UILaunchStoryboardName</key>
+    <string>LaunchScreen</string>
+
+    <!-- Ensure the app supports modern fullscreen layouts -->
+    <key>UIUserInterfaceStyle</key>
+    <string>Light</string>
+
+    <!-- Remove deprecated keys, such as UILaunchImages -->
+
+</dict>
+</plist>
