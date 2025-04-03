@@ -9,12 +9,12 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var loginModel: LoginModel
-    @State private var selectedTab = 2  // Start with home tab selected
+    @State private var selectedTab = 2
+    @State private var showDailyGoalsSetup = false
     
     var body: some View {
         if loginModel.loginSuccess {
             ZStack {
-                // Main app background
                 LinearGradient(
                     gradient: Gradient(colors: [
                         ModernColors.background,
@@ -26,27 +26,29 @@ struct ContentView: View {
                 )
                 .ignoresSafeArea()
                 
-                ZStack(alignment: .bottom) {
-                    TabView(selection: $selectedTab) {
-                        ProfileView()
-                            .tag(0)
-                        
-                        DishView()
-                            .tag(1)
-                        
-                        DashboardView()
-                            .tag(2)
-                        
-                        LogView()
-                            .tag(3)
-                        
-                        SettingsView()
-                            .tag(4)
-                    }
-                    
-                    EnhancedTabBar(selectedIndex: $selectedTab)
-                        .padding(.bottom, 8)
+                TabView(selection: $selectedTab) {
+                    ProfileView().tag(0)
+                    DishView().tag(1)
+                    DashboardView().tag(2)
+                    LogView().tag(3)
+                    SettingsView().tag(4)
                 }
+                
+                VStack {
+                    Spacer()
+                    FloatTabBar(selectedIndex: $selectedTab)
+                        .padding(.bottom, -12) // Lowered from 12 to -12 (double the previous reduction)
+                }
+            }
+            .onAppear {
+                let setupComplete = UserDefaults.standard.bool(forKey: "isDailyGoalsSetupComplete")
+                if !setupComplete {
+                    showDailyGoalsSetup = true
+                }
+            }
+            .fullScreenCover(isPresented: $showDailyGoalsSetup) {
+                DailyGoalsSetupView()
+                    .environmentObject(loginModel)
             }
         } else {
             LoginView()
@@ -54,99 +56,145 @@ struct ContentView: View {
     }
 }
 
-struct EnhancedTabBar: View {
+struct FloatTabBar: View {
     @Binding var selectedIndex: Int
     @Namespace private var namespace
+    @State private var hoverOffset: CGFloat = 0
+    @State private var scaleEffect: CGFloat = 0.95
     
     private let tabs = [
-        TabItem(icon: "person.fill", label: "Profile"),
-        TabItem(icon: "fork.knife", label: "Dish"),
-        TabItem(icon: "house.fill", label: "Home"),
-        TabItem(icon: "list.bullet.clipboard.fill", label: "Log"),
-        TabItem(icon: "gearshape.fill", label: "Settings")
+        TabItem(icon: "person.fill", label: "Profile", color: ModernColors.accent),
+        TabItem(icon: "fork.knife", label: "Dish", color: ModernColors.secondary),
+        TabItem(icon: "house.fill", label: "Home", color: ModernColors.primary),
+        TabItem(icon: "list.bullet.clipboard.fill", label: "Log", color: ModernColors.tertiary),
+        TabItem(icon: "gearshape.fill", label: "Settings", color: ModernColors.highlight)
     ]
     
+    private let hapticFeedback = UIImpactFeedbackGenerator(style: .soft)
+    
     var body: some View {
-        GeometryReader { geometry in
-            HStack(spacing: 0) {
-                ForEach(0..<tabs.count, id: \.self) { index in
-                    let isSelected = selectedIndex == index
-                    
-                    VStack(spacing: 4) {
-                        // Icon with animated background
-                        ZStack {
-                            if isSelected {
-                                Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            gradient: Gradient(colors: [ModernColors.primary, ModernColors.accent]),
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .matchedGeometryEffect(id: "background", in: namespace)
-                                    .frame(width: 45, height: 45)
-                            }
-                            
-                            Image(systemName: tabs[index].icon)
-                                .font(.system(size: isSelected ? 20 : 18, weight: isSelected ? .bold : .regular))
-                                .foregroundColor(isSelected ? .white : ModernColors.muted)
-                                .frame(width: 45, height: 45)
-                                .scaleEffect(isSelected ? 1.1 : 1.0)
-                                .animation(.interpolatingSpring(stiffness: 300, damping: 15), value: isSelected)
-                        }
-                        
-                        // Label with animation
-                        Text(tabs[index].label)
-                            .font(.system(size: 11, weight: isSelected ? .medium : .regular))
-                            .foregroundColor(isSelected ? ModernColors.primary : ModernColors.muted)
-                            .opacity(isSelected ? 1 : 0.7)
-                            .scaleEffect(isSelected ? 1.0 : 0.9)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        withAnimation(.interpolatingSpring(stiffness: 300, damping: 15)) {
-                            selectedIndex = index
-                        }
+        HStack(spacing: 24) {
+            ForEach(0..<tabs.count, id: \.self) { index in
+                FloatTabItem(
+                    icon: tabs[index].icon,
+                    label: tabs[index].label,
+                    color: tabs[index].color,
+                    isSelected: selectedIndex == index
+                ) {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.7, blendDuration: 0.2)) {
+                        selectedIndex = index
+                        hapticFeedback.impactOccurred()
                     }
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8) // Reduced vertical padding
-            .background(
-                ZStack {
-                    // Blurred background with reduced opacity
-                    Color.black.opacity(0.6)
-                        .blur(radius: 8)
-                    
-                    // Gradient overlay with reduced opacity
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 20)
+        .background(
+            Capsule()
+                .fill(
                     LinearGradient(
-                        gradient: Gradient(colors: [
-                            ModernColors.surface.opacity(0.7),
-                            ModernColors.surface.opacity(0.5)
-                        ]),
+                        colors: [ModernColors.surface, ModernColors.surfaceHover],
                         startPoint: .top,
                         endPoint: .bottom
                     )
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 25))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 25)
-                    .stroke(ModernColors.surfaceHover.opacity(0.15), lineWidth: 0.5)
-            )
-            .shadow(color: Color.black.opacity(0.15), radius: 15, x: 0, y: 8)
-            .shadow(color: ModernColors.primary.opacity(0.15), radius: 8, x: 0, y: 2)
-            .padding(.horizontal)
+                )
+                .shadow(color: ModernColors.neumorphicShadow.opacity(0.5), radius: 12, x: 0, y: 6)
+        )
+        .overlay(
+            Capsule()
+                .trim(from: 0.2, to: 0.8)
+                .stroke(
+                    LinearGradient(
+                        colors: [ModernColors.shimmerOverlay, ModernColors.prismLight],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    ),
+                    lineWidth: 1
+                )
+                .opacity(0.6)
+        )
+        .scaleEffect(scaleEffect)
+        .offset(y: hoverOffset)
+        .onAppear {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.6, blendDuration: 0.3)) {
+                scaleEffect = 1.0
+            }
+            withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) {
+                hoverOffset = -10
+            }
         }
-        .frame(height: 70) // Reduced overall height
+    }
+}
+
+struct FloatTabItem: View {
+    let icon: String
+    let label: String
+    let color: Color
+    let isSelected: Bool
+    let action: () -> Void
+    @State private var isHovering = false
+    @State private var rotation: Double = 0
+    @State private var pulse: CGFloat = 1.0
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 6) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [color.opacity(isSelected ? 0.3 : 0), color.opacity(isSelected ? 0.1 : 0)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .frame(width: 42, height: 42)
+                        .scaleEffect(pulse)
+                        .opacity(isSelected ? 0.8 : 0)
+                    
+                    Image(systemName: icon)
+                        .font(.system(size: 22, weight: isSelected ? .semibold : .regular))
+                        .foregroundColor(isSelected ? color : ModernColors.muted)
+                        .shadow(color: isSelected ? color.opacity(0.4) : .clear, radius: 2)
+                        .rotationEffect(.degrees(isSelected ? rotation : 0))
+                }
+                
+                Text(label)
+                    .font(.system(size: 11, weight: isSelected ? .semibold : .regular, design: .rounded))
+                    .foregroundColor(isSelected ? color : ModernColors.muted.opacity(0.8))
+                    .opacity(isSelected ? 1.0 : 0.7)
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+        .scaleEffect(isHovering ? 1.15 : (isSelected ? 1.1 : 1.0))
+        .offset(y: isSelected ? -4 : 0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
+        .onChange(of: isSelected) { newValue in
+            if newValue {
+                withAnimation(.easeInOut(duration: 0.6)) {
+                    rotation = 360
+                }
+                withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
+                    pulse = 1.2
+                }
+            } else {
+                rotation = 0
+                pulse = 1.0
+            }
+        }
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isHovering = hovering
+            }
+        }
     }
 }
 
 struct TabItem {
     let icon: String
     let label: String
+    let color: Color
 }
 
 #Preview {

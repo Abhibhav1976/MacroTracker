@@ -40,7 +40,11 @@
     <key>UIUserInterfaceStyle</key>
     <string>Light</string>
 
-    <!-- Remove deprecated keys, such as UILaunchImages -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+    </dict>
 
 </dict>
 </plist>

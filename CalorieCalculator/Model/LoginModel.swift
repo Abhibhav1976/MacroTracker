@@ -14,6 +14,7 @@ struct UserResponse: Codable {
     let userId: Int?
     let username: String?
     let password: String?
+    let displayName: String?
     let email: String?
     let age: Int?
     let currentWeight: Double?
@@ -24,6 +25,7 @@ struct UserResponse: Codable {
     let gender: String?
     let goalType: String?
     let profilePicture: String?
+    let memberType: String?
     let error: String?
 
     enum CodingKeys: String, CodingKey {
@@ -32,6 +34,7 @@ struct UserResponse: Codable {
         case userId = "userId"
         case username
         case password
+        case displayName = "displayName"
         case email
         case age
         case currentWeight
@@ -42,6 +45,7 @@ struct UserResponse: Codable {
         case gender
         case goalType
         case profilePicture
+        case memberType
         case error
     }
 }
@@ -56,7 +60,7 @@ class LoginModel: ObservableObject {
     typealias LoginCompletion = (Result<UserResponse, Error>) -> Void
     
     func login(username: String, password: String, completion: @escaping LoginCompletion) {
-        let url = URL(string: "https://d303-2401-4900-1c0a-634b-6c67-ffd-63e8-5a9.ngrok-free.app/CalorieCalculator-1.0-SNAPSHOT/login")!
+        let url = URL(string: "http://35.200.184.145:8080/CalorieCalculator-1.0-SNAPSHOT/login")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("true", forHTTPHeaderField: "X-Mobile-App")
@@ -89,7 +93,7 @@ class LoginModel: ObservableObject {
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self else { return }
                     
-                    if userResponse.success, let id = userResponse.userId {  // Fixing "UserId" to "userId"
+                    if userResponse.success, let id = userResponse.userId, let memberType = userResponse.memberType {
                         self.userResponse = userResponse
                         self.loginSuccess = true
                         
@@ -97,6 +101,7 @@ class LoginModel: ObservableObject {
                         UserDefaults.standard.set(id, forKey: "UserId")
                         UserDefaults.standard.set(password, forKey: "password")
                         UserDefaults.standard.set(username, forKey: "username")
+                        UserDefaults.standard.set(memberType, forKey: "memberType")
                         
                         UserDefaults.standard.synchronize()
                         
@@ -120,5 +125,23 @@ class LoginModel: ObservableObject {
                 completion(.failure(error))
             }
         }.resume()
+    }
+}
+extension LoginModel {
+    func logout() {
+        // Clear stored session data
+        UserDefaults.standard.removeObject(forKey: "loginSuccess")
+        UserDefaults.standard.removeObject(forKey: "UserId")
+        UserDefaults.standard.removeObject(forKey: "password")
+        UserDefaults.standard.removeObject(forKey: "username")
+        UserDefaults.standard.removeObject(forKey: "displayName")
+        UserDefaults.standard.synchronize()
+
+        // Reset model state
+        DispatchQueue.main.async {
+            self.loginSuccess = false
+            self.userId = nil
+            self.userResponse = nil
+        }
     }
 }

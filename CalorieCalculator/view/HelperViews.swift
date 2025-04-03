@@ -1,27 +1,42 @@
 import SwiftUI
 
-// New Color Palette
+// MARK: - ModernColors (Aligned with Dashboard)
 enum ModernColors {
     static let background = Color(hex: "09090B")
     static let surface = Color(hex: "18181B")
     static let surfaceHover = Color(hex: "27272A")
-    static let primary = Color(hex: "22C55E")
-    static let secondary = Color(hex: "3B82F6")
-    static let accent = Color(hex: "8B5CF6")
+    static let primary = Color(hex: "22C55E") // Dashboard green
+    static let secondary = Color(hex: "3B82F6") // Dashboard blue
+    static let accent = Color(hex: "8B5CF6") // Dashboard purple
     static let muted = Color(hex: "71717A")
     static let text = Color(hex: "FAFAFA")
     static let white = Color(hex: "FFFFFF")
-    static let tertiary = Color(hex: "F97316")
+    static let tertiary = Color(hex: "F97316") // Dashboard orange
     static let quaternary = Color(hex: "F97316")
-
-    // Adding error and success states
     static let error = Color(hex: "EF4444")
     static let success = Color(hex: "22C55E")
     static let warning = Color(hex: "F59E0B")
     static let destructive = Color(hex: "DC2626")
+    static let glassLight = Color(hex: "FFFFFF").opacity(0.15) // Dashboard glass
+    static let glassDark = Color(hex: "000000").opacity(0.3)
+    static let neumorphicShadow = Color(hex: "0F0F11") // Dashboard shadow
+    static let neumorphicHighlight = Color(hex: "1E1E22")
+    static let glyphGlow = Color(hex: "E0E0E0") // Dashboard glyphs
+    static let highlight = Color(hex: "2DD4BF") // Dashboard teal
+    
+    static let cosmicGlow = Color(hex: "FF3CAC")
+    static let neonPulse = Color(hex: "00F7FF")
+    static let voidBlack = Color(hex: "0A0A0C")
+    static let prismLight = Color(hex: "FFFFFF").opacity(0.25)
+    
+    static let auroraPurple = Color(hex: "7B2CBF")
+    static let neonLime = Color(hex: "D9ED92")
+    static let eclipseBlue = Color(hex: "1A759F")
+    static let radiantGold = Color(hex: "FFD60A")
+    static let shimmerOverlay = Color(hex: "FFFFFF").opacity(0.05)
 }
 
-// Old Color Palette
+// Old Color Palette (Unchanged)
 struct ColorPalette {
     static let background = Color(hex: "121212")
     static let cardBackground = Color(hex: "1E1E1E")
@@ -33,19 +48,92 @@ struct ColorPalette {
     static let inactive = Color(hex: "757575")
 }
 
+// MARK: - Color Extension (Assuming this exists in your project)
 extension Color {
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0
         Scanner(string: hex).scanHexInt64(&int)
-        let r = Double((int & 0xFF0000) >> 16) / 255.0
-        let g = Double((int & 0x00FF00) >> 8) / 255.0
-        let b = Double(int & 0x0000FF) / 255.0
-        self.init(red: r, green: g, blue: b)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 3: // RGB (12-bit)
+            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6: // RGB (24-bit)
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8: // ARGB (32-bit)
+            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            (a, r, g, b) = (255, 0, 0, 0)
+        }
+        self.init(
+            .sRGB,
+            red: Double(r) / 255,
+            green: Double(g) / 255,
+            blue: Double(b) / 255,
+            opacity: Double(a) / 255
+        )
     }
 }
 
-// Needs to be updated
+// MARK: - SubscribeToPremiumView (Dashboard-Inspired)
+struct SubscribeToPremiumView: View {
+    @State private var animate = false
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "lock.fill")
+                .font(.system(size: 40))
+                .foregroundStyle(ModernColors.highlight)
+                .shadow(color: ModernColors.primary.opacity(0.3), radius: 4)
+                .scaleEffect(animate ? 1.1 : 1.0)
+            
+            Text("Premium Feature")
+                .font(.system(size: 24, weight: .bold, design: .rounded))
+                .foregroundStyle(ModernColors.text)
+                .opacity(animate ? 1 : 0)
+            
+            Text("This feature is available for Premium users only. Upgrade now to scan barcodes and access more features!")
+                .font(.custom("Azeret Mono", size: 14))
+                .foregroundColor(ModernColors.muted)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+                .opacity(animate ? 1 : 0)
+            
+            Button(action: {
+                // Handle the upgrade action
+            }) {
+                Text("Upgrade to Premium")
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .foregroundStyle(ModernColors.text)
+                    .padding(.vertical, 10)
+                    .frame(maxWidth: .infinity)
+                    .background(ModernColors.glassLight)
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(ModernColors.primary.opacity(0.5), lineWidth: 1)
+                    )
+            }
+            .padding(.horizontal)
+            .scaleEffect(animate ? 1.0 : 0.95)
+        }
+        .padding(20)
+        .background(ModernColors.glassDark)
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(ModernColors.neumorphicHighlight.opacity(0.3), lineWidth: 1)
+        )
+        .shadow(color: ModernColors.neumorphicShadow.opacity(0.3), radius: 6)
+        .onAppear {
+            withAnimation(.easeIn(duration: 0.5)) {
+                animate = true
+            }
+        }
+    }
+}
+
+// MARK: - PopupView (Glassmorphic Dashboard Style)
 struct PopupView<Content: View>: View {
     let title: String
     let content: Content
@@ -60,119 +148,99 @@ struct PopupView<Content: View>: View {
     
     var body: some View {
         ZStack {
-            Color.black.opacity(0.4)
+            ModernColors.background.opacity(0.85)
                 .ignoresSafeArea()
                 .onTapGesture {
-                    withAnimation(.easeInOut(duration: 0.2)) {
+                    withAnimation(.easeOut(duration: 0.3)) {
                         isPresented = false
                         onClose?()
                     }
                 }
             
-            VStack(spacing: 0) {
-                content
-                    .padding()
-                    .background(ModernColors.background)
-                    .cornerRadius(20)
-                    .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 4)
-                    .padding(.horizontal, 20)
-                
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        isPresented = false
-                        onClose?()
-                    }
-                }) {
-                    Text("Close")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(ModernColors.text)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(ModernColors.surface)
-                        .cornerRadius(12)
-                }
-                .buttonStyle(ScaleButtonStyle())
-                .padding(.horizontal, 20)
-                .padding(.top, 12)
-                .padding(.bottom, 30)
-            }
-            .transition(.move(edge: .bottom).combined(with: .opacity))
+            content
+                .padding(20)
+                .background(ModernColors.glassDark)
+                .cornerRadius(16)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(ModernColors.neumorphicHighlight.opacity(0.3), lineWidth: 1)
+                )
+                .shadow(color: ModernColors.neumorphicShadow.opacity(0.3), radius: 6)
+                .frame(maxWidth: 340)
         }
+        .transition(.opacity)
     }
 }
 
+// MARK: - StyledTextField (Dashboard-Inspired Input)
 struct StyledTextField: View {
     let placeholder: String
     @Binding var text: String
     let keyboardType: UIKeyboardType
-    @State private var isFocused: Bool = false
+    @State private var isFocused = false
     
     var body: some View {
         TextField(placeholder, text: $text)
             .keyboardType(keyboardType)
-            .padding()
+            .padding(10)
             .background(ModernColors.surface)
-            .cornerRadius(12)
+            .cornerRadius(10)
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(isFocused ? ModernColors.primary : ModernColors.muted.opacity(0.5), lineWidth: 1)
-                    .animation(.easeInOut(duration: 0.2), value: isFocused)
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(ModernColors.highlight.opacity(isFocused ? 0.7 : 0.3), lineWidth: 1)
             )
-            .foregroundColor(ModernColors.text)
-            .onTapGesture {
-                isFocused = true
-            }
-            .onSubmit {
-                isFocused = false
-            }
+            .foregroundStyle(ModernColors.text)
+            .font(.custom("Azeret Mono", size: 14))
+            .animation(.easeInOut(duration: 0.2), value: isFocused)
+            .onTapGesture { isFocused = true }
+            .onSubmit { isFocused = false }
     }
 }
 
+// MARK: - SuccessView (Dashboard-Styled Success)
 struct SuccessView: View {
     let message: String
     @Binding var isPresented: Bool
-    @State private var animate: Bool = false
+    @State private var animate = false
     
     var body: some View {
-        LinearGradient(
-            gradient: Gradient(colors: [
-                ModernColors.background,
-                ModernColors.surface,
-                ModernColors.background
-            ]),
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-        .ignoresSafeArea()
-        VStack(spacing: 20) {
-            Image(systemName: "checkmark.circle.fill")
-                .resizable()
-                .frame(width: 60, height: 60)
-                .foregroundColor(ModernColors.primary)
-                .scaleEffect(animate ? 1.1 : 0.5)
-                .opacity(animate ? 1 : 0)
+        ZStack {
+            ModernColors.background.opacity(0.85)
+                .ignoresSafeArea()
             
-            Text("Congratulation")
-                .font(.system(size: 24, weight: .bold))
-                .foregroundColor(ModernColors.text)
-                .opacity(animate ? 1 : 0)
-                .offset(y: animate ? 0 : 20)
-            
-            Text(message)
-                .font(.system(size: 16))
-                .foregroundColor(ModernColors.muted)
-                .multilineTextAlignment(.center)
-                .opacity(animate ? 1 : 0)
-                .offset(y: animate ? 0 : 20)
+            VStack(spacing: 20) {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 50))
+                    .foregroundStyle(ModernColors.primary)
+                    .scaleEffect(animate ? 1.1 : 1.0)
+                    .shadow(color: ModernColors.primary.opacity(0.3), radius: 4)
+                
+                Text("Success!")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundStyle(ModernColors.text)
+                    .opacity(animate ? 1 : 0)
+                
+                Text(message)
+                    .font(.custom("Azeret Mono", size: 14))
+                    .foregroundColor(ModernColors.muted)
+                    .multilineTextAlignment(.center)
+                    .opacity(animate ? 1 : 0)
+            }
+            .padding(20)
+            .background(ModernColors.glassDark)
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(ModernColors.primary.opacity(0.4), lineWidth: 1)
+            )
+            .shadow(color: ModernColors.neumorphicShadow.opacity(0.3), radius: 6)
         }
-        .padding(.vertical, 40)
         .onAppear {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+            withAnimation(.easeIn(duration: 0.5)) {
                 animate = true
             }
-            // Auto-dismiss after 2 seconds
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                withAnimation(.easeInOut(duration: 0.3)) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                withAnimation(.easeOut(duration: 0.3)) {
                     isPresented = false
                 }
             }
@@ -180,69 +248,72 @@ struct SuccessView: View {
     }
 }
 
+// MARK: - ErrorView (Dashboard-Styled Error)
 struct ErrorView: View {
     let message: String
     @Binding var isPresented: Bool
-    @State private var animate: Bool = false
+    @State private var animate = false
     
     var body: some View {
-        LinearGradient(
-            gradient: Gradient(colors: [
-                ModernColors.background,
-                ModernColors.surface,
-                ModernColors.background
-            ]),
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-        .ignoresSafeArea()
-        VStack(spacing: 20) {
-            Image(systemName: "xmark.circle.fill")
-                .resizable()
-                .frame(width: 60, height: 60)
-                .foregroundColor(ModernColors.error)
-                .scaleEffect(animate ? 1.1 : 0.5)
-                .opacity(animate ? 1 : 0)
+        ZStack {
+            ModernColors.background.opacity(0.85)
+                .ignoresSafeArea()
             
-            Text("Error")
-                .font(.system(size: 24, weight: .bold))
-                .foregroundColor(ModernColors.text)
-                .opacity(animate ? 1 : 0)
-                .offset(y: animate ? 0 : 20)
-            
-            Text(message)
-                .font(.system(size: 16))
-                .foregroundColor(ModernColors.muted)
-                .multilineTextAlignment(.center)
-                .opacity(animate ? 1 : 0)
-                .offset(y: animate ? 0 : 20)
-            
-            Button(action: {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    isPresented = false
+            VStack(spacing: 20) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 50))
+                    .foregroundStyle(ModernColors.error)
+                    .scaleEffect(animate ? 1.1 : 1.0)
+                    .shadow(color: ModernColors.error.opacity(0.3), radius: 4)
+                
+                Text("Error!")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundStyle(ModernColors.text)
+                    .opacity(animate ? 1 : 0)
+                
+                Text(message)
+                    .font(.custom("Azeret Mono", size: 14))
+                    .foregroundColor(ModernColors.muted)
+                    .multilineTextAlignment(.center)
+                    .opacity(animate ? 1 : 0)
+                
+                Button(action: {
+                    withAnimation(.easeOut(duration: 0.3)) {
+                        isPresented = false
+                    }
+                }) {
+                    Text("Retry")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundStyle(ModernColors.text)
+                        .padding(.vertical, 8)
+                        .frame(width: 80)
+                        .background(ModernColors.glassLight)
+                        .cornerRadius(10)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(ModernColors.error.opacity(0.5), lineWidth: 1)
+                        )
                 }
-            }) {
-                Text("Try Again")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(ModernColors.text)
-                    .frame(width: 120)
-                    .padding(.vertical, 12)
-                    .background(ModernColors.primary)
-                    .cornerRadius(8)
+                .opacity(animate ? 1 : 0)
             }
-            .buttonStyle(ScaleButtonStyle())
-            .opacity(animate ? 1 : 0)
-            .offset(y: animate ? 0 : 20)
+            .padding(20)
+            .background(ModernColors.glassDark)
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(ModernColors.error.opacity(0.4), lineWidth: 1)
+            )
+            .shadow(color: ModernColors.neumorphicShadow.opacity(0.3), radius: 6)
         }
-        .padding(.vertical, 40)
         .onAppear {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+            withAnimation(.easeIn(duration: 0.5)) {
                 animate = true
             }
         }
     }
 }
-// Original components kept from the previous version
+
+// MARK: - StatItem (Unchanged)
 struct StatItem: View {
     let title: String
     let value: String
@@ -297,28 +368,30 @@ struct StatItem: View {
     }
 }
 
+// MARK: - DishCard (Unchanged)
 struct DishCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Rectangle()
-                .fill(ColorPalette.inactive)
+                .fill(ModernColors.muted)
                 .frame(height: 120)
                 .cornerRadius(12)
             
             Text("Dish Name")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(ModernColors.white)
             
             Text("500 calories")
                 .font(.subheadline)
-                .foregroundColor(ColorPalette.subtext)
+                .foregroundColor(ModernColors.muted)
         }
         .padding()
-        .background(ColorPalette.cardBackground)
+        .background(ModernColors.surface)
         .cornerRadius(16)
     }
 }
- 
+
+// MARK: - GridLayout (Unchanged)
 struct GridLayout: Layout {
     var columns: Int
     var spacing: CGFloat
@@ -345,6 +418,7 @@ struct GridLayout: Layout {
     }
 }
 
+// MARK: - ScaleButtonStyle (Unchanged)
 struct ScaleButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -353,69 +427,7 @@ struct ScaleButtonStyle: ButtonStyle {
     }
 }
 
-struct MealTypeIcon: View {
-    let type: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    private var iconName: String {
-        switch type {
-        case "Breakfast": return "sun.and.horizon.fill"
-        case "Lunch": return "sun.max.fill"
-        case "Dinner": return "moon.stars.fill"
-        case "Snacks": return "bag.fill"
-        default: return ""
-        }
-    }
-    
-    private var gradientColors: [Color] {
-        switch type {
-        case "Breakfast": return [Color(hex: "FF6B6B"), Color(hex: "FFA06B")]
-        case "Lunch": return [Color(hex: "4FACFE"), Color(hex: "00F2FE")]
-        case "Dinner": return [Color(hex: "8B5CF6"), Color(hex: "6366F1")]
-        case "Snacks": return [Color(hex: "22C55E"), Color(hex: "16A34A")]
-        default: return [ModernColors.muted]
-        }
-    }
-    
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 12) {
-                Image(systemName: iconName)
-                    .font(.system(size: 32))
-                    .foregroundColor(.white)
-                
-                Text(type)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white)
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 100)
-            .background(
-                LinearGradient(
-                    gradient: Gradient(colors: gradientColors),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(isSelected ? .white : .clear, lineWidth: 3)
-            )
-            .cornerRadius(16)
-            .shadow(
-                color: isSelected ? gradientColors[0].opacity(0.5) : Color.black.opacity(0.1),
-                radius: isSelected ? 10 : 5,
-                x: 0,
-                y: isSelected ? 5 : 2
-            )
-            .scaleEffect(isSelected ? 1.05 : 1.0)
-            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
-        }
-    }
-}
-
-// New Enhanced Input View
+// MARK: - MacroInputView (Dashboard-Inspired Redesign)
 struct MacroInputView: View {
     @Binding var isPresented: Bool
     @State private var carbs: String = ""
@@ -424,7 +436,7 @@ struct MacroInputView: View {
     @State private var calories: Int = 0
     @State private var selectedMealType: String = ""
     @State private var showSuccess: Bool = false
-    @State private var appearAnimation: Bool = false
+    @State private var animate = false
     
     @EnvironmentObject var macrosModel: Macros
     let userId: Int
@@ -434,115 +446,87 @@ struct MacroInputView: View {
     var body: some View {
         if showSuccess {
             SuccessView(
-                message: "Your macros have been added successfully",
+                message: "Macros logged successfully!",
                 isPresented: $isPresented
             )
         } else {
-            ModernPopupContainer(isPresented: $isPresented) {
-                AnyView(
-                    ScrollView {
-                        VStack(spacing: 32) {
-                            // Title with animation
-                            Text("Add Your Meal")
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundColor(ModernColors.text)
-                                .opacity(appearAnimation ? 1 : 0)
-                                .offset(y: appearAnimation ? 0 : 20)
-                            
-                            // Meal type grid
-                            LazyVGrid(columns: [
-                                GridItem(.flexible()),
-                                GridItem(.flexible())
-                            ], spacing: 16) {
-                                ForEach(mealTypes, id: \.self) { type in
-                                    MealTypeIcon(
-                                        type: type,
-                                        isSelected: selectedMealType == type,
-                                        action: { selectedMealType = type }
-                                    )
-                                    .offset(y: appearAnimation ? 0 : 50)
-                                    .opacity(appearAnimation ? 1 : 0)
-                                }
-                            }
-                            .padding(.horizontal, 8)
-                            
-                            // Macro inputs
-                            VStack(spacing: 20) {
-                                ModernTextField(
-                                    placeholder: "🥖 Carbs (g)",
-                                    text: $carbs,
-                                    keyboardType: .numberPad
-                                )
-                                .offset(y: appearAnimation ? 0 : 30)
-                                .opacity(appearAnimation ? 1 : 0)
-                                
-                                ModernTextField(
-                                    placeholder: "🥩 Protein (g)",
-                                    text: $protein,
-                                    keyboardType: .numberPad
-                                )
-                                .offset(y: appearAnimation ? 0 : 30)
-                                .opacity(appearAnimation ? 1 : 0)
-                                
-                                ModernTextField(
-                                    placeholder: "🥑 Fat (g)",
-                                    text: $fat,
-                                    keyboardType: .numberPad
-                                )
-                                .offset(y: appearAnimation ? 0 : 30)
-                                .opacity(appearAnimation ? 1 : 0)
-                            }
-                            
-                            // Calories display
-                            VStack(spacing: 4) {
-                                Text("Total Calories")
-                                    .font(.system(size: 8, weight: .medium))
-                                    .foregroundColor(ModernColors.muted)
-                                
-                                Text("\(calories) kcal")
-                                    .font(.system(size: 24, weight: .bold))
-                                    .foregroundColor(ModernColors.text)
-                            }
-                            .padding(.vertical, 16)
-                            .frame(maxWidth: .infinity)
-                            .background(ModernColors.surface)
-                            .cornerRadius(16)
-                            .offset(y: appearAnimation ? 0 : 30)
-                            .opacity(appearAnimation ? 1 : 0)
-                            .onChange(of: carbs) { _ in calculateCalories() }
-                            .onChange(of: protein) { _ in calculateCalories() }
-                            .onChange(of: fat) { _ in calculateCalories() }
-                            
-                            // Save button with gradient and animation
-                            Button(action: submitMacros) {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "checkmark.circle.fill")
-                                    Text("Save Meal")
-                                }
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 56)
-                                .background(
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [ModernColors.primary, ModernColors.primary.opacity(0.8)]),
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                                .cornerRadius(16)
-                                .shadow(color: ModernColors.primary.opacity(0.3), radius: 10, x: 0, y: 5)
-                            }
-                            .disabled(carbs.isEmpty || protein.isEmpty || fat.isEmpty || selectedMealType.isEmpty)
-                            .opacity(appearAnimation ? 1 : 0)
-                            .offset(y: appearAnimation ? 0 : 30)                        }
-                        .padding(24)
+            PopupView(title: "Quick Add Macros", isPresented: $isPresented) {
+                VStack(spacing: 20) {
+                    Text("Quick Add Macros")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundStyle(ModernColors.text)
+                        .opacity(animate ? 1 : 0)
+                        .offset(y: animate ? 0 : 10)
+                    
+                    HStack(spacing: 10) {
+                        ForEach(mealTypes, id: \.self) { type in
+                            MealTypeIcon(
+                                type: type,
+                                isSelected: selectedMealType == type,
+                                action: { selectedMealType = type }
+                            )
+                            .opacity(animate ? 1 : 0)
+                            .offset(y: animate ? 0 : 15)
+                            .animation(
+                                .easeInOut(duration: 0.4).delay(Double(mealTypes.firstIndex(of: type) ?? 0) * 0.1),
+                                value: animate
+                            )
+                        }
                     }
-                )
+                    
+                    ZStack {
+                        Circle()
+                            .fill(ModernColors.glassLight.opacity(0.7))
+                            .frame(width: 80, height: 80)
+                            .overlay(
+                                Circle()
+                                    .stroke(ModernColors.primary.opacity(0.5), lineWidth: 1)
+                            )
+                        
+                        VStack(spacing: 2) {
+                            Text("\(calories)")
+                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .foregroundStyle(ModernColors.highlight)
+                            Text("kcal")
+                                .font(.custom("Azeret Mono", size: 12))
+                                .foregroundColor(ModernColors.muted)
+                        }
+                    }
+                    .opacity(animate ? 1 : 0)
+                    .scaleEffect(animate ? 1 : 0.9)
+                    .onChange(of: carbs) { _ in calculateCalories() }
+                    .onChange(of: protein) { _ in calculateCalories() }
+                    .onChange(of: fat) { _ in calculateCalories() }
+                    
+                    HStack(spacing: 12) {
+                        StyledTextField(placeholder: "Carbs", text: $carbs, keyboardType: .numberPad)
+                        StyledTextField(placeholder: "Protein", text: $protein, keyboardType: .numberPad)
+                        StyledTextField(placeholder: "Fat", text: $fat, keyboardType: .numberPad)
+                    }
+                    .opacity(animate ? 1 : 0)
+                    .offset(x: animate ? 0 : 20)
+                    
+                    Button(action: submitMacros) {
+                        Text("Save")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .foregroundStyle(ModernColors.text)
+                            .padding(.vertical, 10)
+                            .frame(maxWidth: .infinity)
+                            .background(ModernColors.primary.opacity(0.9))
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(ModernColors.neumorphicHighlight.opacity(0.5), lineWidth: 1)
+                            )
+                    }
+                    .disabled(carbs.isEmpty || protein.isEmpty || fat.isEmpty || selectedMealType.isEmpty)
+                    .opacity(animate ? 1 : 0)
+                    .scaleEffect(animate ? 1 : 0.95)
+                }
             }
             .onAppear {
-                withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-                    appearAnimation = true
+                withAnimation(.easeIn(duration: 0.5)) {
+                    animate = true
                 }
             }
         }
@@ -576,7 +560,7 @@ struct MacroInputView: View {
         ) { result in
             switch result {
             case .success:
-                withAnimation {
+                withAnimation(.easeOut(duration: 0.3)) {
                     showSuccess = true
                 }
             case .failure(let error):
@@ -592,6 +576,50 @@ struct MacroInputView: View {
     }
 }
 
+// MARK: - MealTypeIcon (Dashboard Glass Style)
+struct MealTypeIcon: View {
+    let type: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    private var iconName: String {
+        switch type {
+        case "Breakfast": return "sunrise.fill"
+        case "Lunch": return "sun.max.fill"
+        case "Dinner": return "moon.stars.fill"
+        case "Snacks": return "leaf.fill"
+        default: return ""
+        }
+    }
+    
+    private var typeColor: Color {
+        switch type {
+        case "Breakfast": return ModernColors.primary
+        case "Lunch": return ModernColors.secondary
+        case "Dinner": return ModernColors.accent
+        case "Snacks": return ModernColors.tertiary
+        default: return ModernColors.muted
+        }
+    }
+    
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                Circle()
+                    .fill(isSelected ? typeColor.opacity(0.7) : ModernColors.glassLight)
+                    .frame(width: 40, height: 40)
+                    .overlay(
+                        Circle()
+                            .stroke(ModernColors.neumorphicHighlight.opacity(isSelected ? 0.7 : 0.3), lineWidth: 1)
+                    )
+                
+                Image(systemName: iconName)
+                    .font(.system(size: 16))
+                    .foregroundStyle(ModernColors.text)
+            }
+        }
+    }
+}
 
 struct SettingsSection<Content: View>: View {
     let title: String

@@ -21,6 +21,7 @@ struct ProfileView: View {
     @Namespace private var animation
     
     private let username = UserDefaults.standard.string(forKey: "username") ?? "No username"
+    private let memberType = UserDefaults.standard.string(forKey: "memberType") ?? "Free"
     
     var body: some View {
         ZStack {
@@ -106,7 +107,7 @@ struct ProfileView: View {
                     .font(.system(size: 28, weight: .bold))
                     .foregroundColor(ModernColors.text)
                 
-                Text("Premium Member")
+                Text(memberType + " Member")
                     .font(.system(size: 16))
                     .foregroundColor(ModernColors.primary)
                     .padding(.horizontal, 12)

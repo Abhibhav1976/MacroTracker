@@ -251,7 +251,7 @@ struct EnhancedFoodRowView: View {
             }
             
             // Serving Info
-            Text("Per \(food.standardServing.amount) \(food.standardServing.unit)")
+            Text("Per \(String(format: "%.2f", food.standardServing.amount)) \(food.standardServing.unit)")
                 .font(.system(size: 14))
                 .foregroundColor(ModernColors.muted)
             
@@ -284,6 +284,11 @@ struct EnhancedFoodRowView: View {
                     unit: "g",
                     color: ModernColors.error
                 )
+            }
+            if let brand = food.brandName {
+                Text(brand)
+                    .font(.system(size: 14))
+                    .foregroundColor(ColorPalette.subtext)
             }
         }
         .padding(16)

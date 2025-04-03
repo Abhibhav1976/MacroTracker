@@ -24,7 +24,7 @@ class UpdateModel: ObservableObject {
             return
         }
         
-        let url = URL(string: "https://d303-2401-4900-1c0a-634b-6c67-ffd-63e8-5a9.ngrok-free.app/CalorieCalculator-1.0-SNAPSHOT/UpdateProfile")!
+        let url = URL(string: "http://35.200.184.145:8080/CalorieCalculator-1.0-SNAPSHOT/UpdateProfile")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("true", forHTTPHeaderField: "X-Mobile-App")

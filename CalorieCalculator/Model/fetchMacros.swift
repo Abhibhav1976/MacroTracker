@@ -1,20 +1,13 @@
-//
-//  fetchMacros.swift
-//  CalorieCalculator
-//
-//  Created by Abhibhav RajSingh on 26/12/24.
-//
-
 import Foundation
 
 struct MacroResponse: Codable {
-  let userId: Int
-  let entryDate: String
-  let mealType: String
-  let calories: Int
-  let carbs: Int
-  let protein: Int
-  let fat: Int
+    let userId: Int
+    let entryDate: String
+    let mealType: String
+    let calories: Int
+    let carbs: Int
+    let protein: Int
+    let fat: Int
 }
 
 class Macros: ObservableObject {
@@ -24,79 +17,9 @@ class Macros: ObservableObject {
     @Published var errorMessage: String?
     @Published var lastScannedBarcode: String?
 
-  func fetchMacros(userId: Int, entryDate: String, completion: @escaping (Result<[MacroResponse], Error>) -> Void) {
-    guard let url = URL(string: "https://d303-2401-4900-1c0a-634b-6c67-ffd-63e8-5a9.ngrok-free.app/CalorieCalculator-1.0-SNAPSHOT/FindMacro") else {
-      print("Invalid URL") // Debug
-      completion(.failure(NSError(domain: "URL Error", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
-      return
-    }
-
-    var request = URLRequest(url: url)
-    request.httpMethod = "POST"
-    request.addValue("true", forHTTPHeaderField: "X-Mobile-App")
-    request.addValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-
-    let parameters = "userId=\(userId)&entryDate=\(entryDate)"
-    print("Request parameters: \(parameters)") // Debug
-    request.httpBody = parameters.data(using: .utf8)
-
-    URLSession.shared.dataTask(with: request) { data, response, error in
-      if let error = error {
-        print("Network error: \(error.localizedDescription)") // Debug
-        DispatchQueue.main.async {
-          self.errorMessage = error.localizedDescription
-          self.fetchSuccess = false
-          completion(.failure(error))
-        }
-        return
-      }
-        /*
-      if let data = data, let rawResponse = String(data: data, encoding: .utf8) {
-        print("Raw server response: \(rawResponse)") // Debug: Print raw response
-      }
-         */
-         
-      guard let data = data else {
-        print("No data received") // Debug
-        let noDataError = NSError(domain: "Fetch Error", code: 0, userInfo: [NSLocalizedDescriptionKey: "No data received"])
-        DispatchQueue.main.async {
-          self.errorMessage = "No data received"
-          self.fetchSuccess = false
-          completion(.failure(noDataError))
-        }
-        return
-      }
-
-      do {
-        let macroResponses = try JSONDecoder().decode([MacroResponse].self, from: data)
-        print("Successfully decoded \(macroResponses.count) macro responses") // Debug
-        DispatchQueue.main.async {
-          self.macros = macroResponses
-          self.fetchSuccess = true
-          self.errorMessage = nil
-          completion(.success(macroResponses))
-        }
-      } catch {
-        print("Decoding error: \(error)") // Debug
-        DispatchQueue.main.async {
-          self.errorMessage = error.localizedDescription
-          self.fetchSuccess = false
-          completion(.failure(error))
-        }
-      }
-    }.resume()
-  }
-    func addMacros(
-        userId: Int,
-        entryDate: String,
-        mealType: String,
-        calories: Int,
-        carbs: Int,
-        protein: Int,
-        fat: Int,
-        completion: @escaping (Result<Bool, Error>) -> Void
-    ) {
-        guard let url = URL(string: "https://d303-2401-4900-1c0a-634b-6c67-ffd-63e8-5a9.ngrok-free.app/CalorieCalculator-1.0-SNAPSHOT/LogMacro") else {
+    func fetchMacros(userId: Int, entryDate: String, completion: @escaping (Result<[MacroResponse], Error>) -> Void) {
+        // Replace with the new URL
+        guard let url = URL(string: "http://35.200.184.145:8080/CalorieCalculator-1.0-SNAPSHOT/FindMacro") else {
             print("Invalid URL")
             completion(.failure(NSError(domain: "URL Error", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
             return
@@ -107,7 +30,84 @@ class Macros: ObservableObject {
         request.addValue("true", forHTTPHeaderField: "X-Mobile-App")
         request.addValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
 
-        let parameters = [
+        let parameters = "userId=\(userId)&entryDate=\(entryDate)"
+        print("Fetch request parameters: \(parameters)")
+        request.httpBody = parameters.data(using: .utf8)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Network error: \(error.localizedDescription)")
+                DispatchQueue.main.async {
+                    self.errorMessage = error.localizedDescription
+                    self.fetchSuccess = false
+                    completion(.failure(error))
+                }
+                return
+            }
+
+            if let httpResponse = response as? HTTPURLResponse {
+                //print("Fetch HTTP Status Code: \(httpResponse.statusCode)")
+                //print("Fetch Response Headers: \(httpResponse.allHeaderFields)")
+            }
+
+            if let data = data, let rawResponse = String(data: data, encoding: .utf8) {
+               // print("Fetch raw server response: \(rawResponse)")
+            }
+
+            guard let data = data else {
+                print("No data received from fetch")
+                let noDataError = NSError(domain: "Fetch Error", code: 0, userInfo: [NSLocalizedDescriptionKey: "No data received"])
+                DispatchQueue.main.async {
+                    self.errorMessage = "No data received"
+                    self.fetchSuccess = false
+                    completion(.failure(noDataError))
+                }
+                return
+            }
+
+            do {
+                let macroResponses = try JSONDecoder().decode([MacroResponse].self, from: data)
+               // print("Successfully decoded \(macroResponses.count) macro responses")
+                DispatchQueue.main.async {
+                    self.macros = macroResponses
+                    self.fetchSuccess = true
+                    self.errorMessage = nil
+                    completion(.success(macroResponses))
+                }
+            } catch {
+                print("Fetch decoding error: \(error)")
+                DispatchQueue.main.async {
+                    self.errorMessage = error.localizedDescription
+                    self.fetchSuccess = false
+                    completion(.failure(error))
+                }
+            }
+        }.resume()
+    }
+
+    func addMacros(
+        userId: Int,
+        entryDate: String,
+        mealType: String,
+        calories: Int,
+        carbs: Int,
+        protein: Int,
+        fat: Int,
+        completion: @escaping (Result<Bool, Error>) -> Void
+    ) {
+        // Replace with the new URL
+        guard let url = URL(string: "http://35.200.184.145:8080/CalorieCalculator-1.0-SNAPSHOT/LogMacro") else {
+            print("Invalid URL")
+            completion(.failure(NSError(domain: "URL Error", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("true", forHTTPHeaderField: "X-Mobile-App")
+        request.addValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+
+        let parameters: [String: Any] = [
             "userId": userId,
             "entryDate": entryDate,
             "mealType": mealType,
@@ -116,15 +116,17 @@ class Macros: ObservableObject {
             "protein": protein,
             "fat": fat
         ]
-        .map { key, value in "\(key)=\(value)" }
-        .joined(separator: "&")
 
-        print("Request parameters: \(parameters)") // Debug
-        request.httpBody = parameters.data(using: .utf8)
+        let parameterString = parameters
+            .map { key, value in "\(key)=\(value)" }
+            .joined(separator: "&")
+
+        //print("Add request parameters: \(parameterString)")
+        request.httpBody = parameterString.data(using: .utf8)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
-                print("Network error: \(error.localizedDescription)") // Debug
+                print("Network error: \(error.localizedDescription)")
                 DispatchQueue.main.async {
                     self.errorMessage = error.localizedDescription
                     self.addSuccess = false
@@ -133,12 +135,19 @@ class Macros: ObservableObject {
                 return
             }
 
+            if let httpResponse = response as? HTTPURLResponse {
+               // print("Add HTTP Status Code: \(httpResponse.statusCode)")
+                // print("Add Response Headers: \(httpResponse.allHeaderFields)")
+            }
+
             if let data = data, let rawResponse = String(data: data, encoding: .utf8) {
-                print("Raw server response: \(rawResponse)") // Debug
+                //print("Add raw server response: \(rawResponse)")
+            } else {
+               // print("No response body received from addMacros")
             }
 
             guard let data = data else {
-                print("No data received") // Debug
+                //print("No data received from addMacros")
                 let noDataError = NSError(domain: "Add Error", code: 0, userInfo: [NSLocalizedDescriptionKey: "No data received"])
                 DispatchQueue.main.async {
                     self.errorMessage = "No data received"
@@ -160,7 +169,7 @@ class Macros: ObservableObject {
                     throw NSError(domain: "Parse Error", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid response format"])
                 }
             } catch {
-                print("Decoding error: \(error)") // Debug
+                print("Add decoding error: \(error)")
                 DispatchQueue.main.async {
                     self.errorMessage = error.localizedDescription
                     self.addSuccess = false

@@ -10,6 +10,7 @@ import SwiftUI
 struct SignUpView: View {
     @EnvironmentObject var signUpModel: SignUpModel
     @State private var username: String = ""
+    @State private var displayName: String = ""
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var confirmPassword: String = ""
@@ -89,6 +90,17 @@ struct SignUpView: View {
                             .offset(x: isAnimating ? 0 : -200)
                             .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.2), value: isAnimating)
                             
+                            // Display Name Field
+                            CustomInputField(
+                                title: "Display Name",
+                                icon: "person.text.rectangle.fill",
+                                text: $displayName,
+                                isSecure: false,
+                                autocapitalization: .words
+                            )
+                            .offset(x: isAnimating ? 0 : -200)
+                            .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.25), value: isAnimating)
+                            
                             // Email Field
                             CustomInputField(
                                 title: "Email",
@@ -135,11 +147,11 @@ struct SignUpView: View {
                                     isLoading = true
                                 }
                                 
-                                guard !username.isEmpty, !email.isEmpty, !password.isEmpty else {
+                                guard !username.isEmpty, !displayName.isEmpty, !email.isEmpty, !password.isEmpty else {
                                     errorMessage = "All fields are required"
                                     isLoading = false
-                                    return
-                                }
+                    
+                                    return}
                                 
                                 guard password == confirmPassword else {
                                     errorMessage = "Passwords do not match"
@@ -147,7 +159,7 @@ struct SignUpView: View {
                                     return
                                 }
                                 
-                                signUpModel.signup(username: username, email: email, password: password) { result in
+                                signUpModel.signup(username: username, displayName: displayName, email: email, password: password) { result in
                                     isLoading = false
                                     switch result {
                                     case .success:

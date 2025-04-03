@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-
 struct SettingsView: View {
     @EnvironmentObject var loginModel: LoginModel
     @StateObject private var updateModel = UpdateModel()
@@ -66,13 +65,13 @@ struct SettingsView: View {
                         }
                     }
                     
-                    // Logout Button Needs To Be Updated
+                    // Logout Button
                     logoutButton
                 }
                 .padding(.horizontal, 24)
             }
         }
-       /* .alert("Log Out", isPresented: $showingLogoutAlert) {
+        .alert("Log Out", isPresented: $showingLogoutAlert) {
             Button("Cancel", role: .cancel) {}
             Button("Log Out", role: .destructive) {
                 withAnimation {
@@ -82,7 +81,6 @@ struct SettingsView: View {
         } message: {
             Text("Are you sure you want to log out?")
         }
-        */
     }
     
     private var header: some View {
@@ -122,16 +120,14 @@ struct SettingsView: View {
     
     private var logoutButton: some View {
         Button(action: {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                showingLogoutAlert = true
-            }
+            showingLogoutAlert = true
         }) {
             HStack(spacing: 8) {
                 Image(systemName: "rectangle.portrait.and.arrow.right")
                 Text("Log Out")
             }
             .font(.system(size: 16, weight: .medium))
-            .foregroundColor(ModernColors.text)
+            .foregroundColor(.white)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
             .background(

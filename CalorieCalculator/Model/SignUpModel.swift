@@ -23,14 +23,14 @@ class SignUpModel: ObservableObject {
     
     typealias SignUpCompletion = (Result<SignUpResponse, Error>) -> Void
     
-    func signup(username: String, email: String, password: String, completion: @escaping SignUpCompletion) {
-        let url = URL(string: "https://d303-2401-4900-1c0a-634b-6c67-ffd-63e8-5a9.ngrok-free.app/CalorieCalculator-1.0-SNAPSHOT/signup")!
+    func signup(username: String, displayName: String, email: String, password: String, completion: @escaping SignUpCompletion) {
+        let url = URL(string: "http://35.200.184.145:8080/CalorieCalculator-1.0-SNAPSHOT/signup")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("true", forHTTPHeaderField: "X-Mobile-App")
         request.addValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         
-        let parameters = "username=\(username.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")&email=\(email.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")&password=\(password.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
+        let parameters = "username=\(username.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ??  "")&displayName=\(displayName.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")&email=\(email.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")&password=\(password.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
         request.httpBody = parameters.data(using: .utf8)
         
         URLSession.shared.dataTask(with: request) { data, response, error in

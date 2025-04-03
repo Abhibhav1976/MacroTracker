@@ -118,6 +118,9 @@ struct LoginView: View {
                                     case .success:
                                         loginModel.loginSuccess = true
                                         UserDefaults.standard.set(true, forKey: "isLoggedIn")
+                                        if UserDefaults.standard.object(forKey: "isDailyGoalsSetupComplete") == nil {
+                                            UserDefaults.standard.set(false, forKey: "isDailyGoalsSetupComplete")
+                                        }
                                     case .failure(let error):
                                         withAnimation {
                                             errorMessage = error.localizedDescription
