@@ -26,6 +26,8 @@ struct UserResponse: Codable {
     let goalType: String?
     let profilePicture: String?
     let memberType: String?
+    let streak: Int?
+    let lastLoggedDate: String?
     let error: String?
 
     enum CodingKeys: String, CodingKey {
@@ -46,6 +48,8 @@ struct UserResponse: Codable {
         case goalType
         case profilePicture
         case memberType
+        case streak
+        case lastLoggedDate
         case error
     }
 }
@@ -93,7 +97,7 @@ class LoginModel: ObservableObject {
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self else { return }
                     
-                    if userResponse.success, let id = userResponse.userId, let memberType = userResponse.memberType {
+                    if userResponse.success, let id = userResponse.userId, let memberType = userResponse.memberType, let streak = userResponse.streak {
                         self.userResponse = userResponse
                         self.loginSuccess = true
                         
@@ -102,6 +106,7 @@ class LoginModel: ObservableObject {
                         UserDefaults.standard.set(password, forKey: "password")
                         UserDefaults.standard.set(username, forKey: "username")
                         UserDefaults.standard.set(memberType, forKey: "memberType")
+                        UserDefaults.standard.set(streak, forKey: "streak")
                         
                         UserDefaults.standard.synchronize()
                         

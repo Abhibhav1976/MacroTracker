@@ -184,8 +184,8 @@ struct FloatingGlyphsView: View {
                     .position(glyph.position)
                     .rotationEffect(.degrees(glyph.rotation))
                     .animation(
-                        Animation.easeInOut(duration: Double.random(in: 6...10))
-                            .repeatForever(autoreverses: true),
+                        Animation.easeInOut(duration: Double.random(in: 6...10)),
+                           // .repeatForever(autoreverses: true),
                         value: glyph.opacity
                     )
             }
@@ -287,7 +287,7 @@ struct TodayView: View {
             .padding(.horizontal, 24)
             .padding(.top, 12)
         }
-    } 
+    }
 }
 
 // MARK: - Macro Dashboard Card
@@ -781,8 +781,8 @@ struct PieSlice: Shape {
 // MARK: - Streak Glass Card
 struct StreakGlassCard: View {
     var isAnimating: Bool
-    let currentStreak = 14
-    let bestStreak = 28
+    private let currentStreak = UserDefaults.standard.integer(forKey: "streak")
+    private let bestStreak = UserDefaults.standard.integer(forKey: "streak") // Using current streak as best streak for now
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {

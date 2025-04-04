@@ -37,7 +37,7 @@ struct ContentView: View {
                 VStack {
                     Spacer()
                     FloatTabBar(selectedIndex: $selectedTab)
-                        .padding(.bottom, -12) // Lowered from 12 to -12 (double the previous reduction)
+                        .padding(.bottom, -12)
                 }
             }
             .onAppear {
@@ -59,8 +59,6 @@ struct ContentView: View {
 struct FloatTabBar: View {
     @Binding var selectedIndex: Int
     @Namespace private var namespace
-    @State private var hoverOffset: CGFloat = 0
-    @State private var scaleEffect: CGFloat = 0.95
     
     private let tabs = [
         TabItem(icon: "person.fill", label: "Profile", color: ModernColors.accent),
@@ -114,16 +112,6 @@ struct FloatTabBar: View {
                 )
                 .opacity(0.6)
         )
-        .scaleEffect(scaleEffect)
-        .offset(y: hoverOffset)
-        .onAppear {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.6, blendDuration: 0.3)) {
-                scaleEffect = 1.0
-            }
-            withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) {
-                hoverOffset = -10
-            }
-        }
     }
 }
 

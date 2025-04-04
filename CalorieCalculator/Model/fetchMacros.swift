@@ -55,7 +55,7 @@ class Macros: ObservableObject {
             }
 
             guard let data = data else {
-                print("No data received from fetch")
+               // print("No data received from fetch")
                 let noDataError = NSError(domain: "Fetch Error", code: 0, userInfo: [NSLocalizedDescriptionKey: "No data received"])
                 DispatchQueue.main.async {
                     self.errorMessage = "No data received"
@@ -75,7 +75,7 @@ class Macros: ObservableObject {
                     completion(.success(macroResponses))
                 }
             } catch {
-                print("Fetch decoding error: \(error)")
+               // print("Fetch decoding error: \(error)")
                 DispatchQueue.main.async {
                     self.errorMessage = error.localizedDescription
                     self.fetchSuccess = false
@@ -121,7 +121,7 @@ class Macros: ObservableObject {
             .map { key, value in "\(key)=\(value)" }
             .joined(separator: "&")
 
-        //print("Add request parameters: \(parameterString)")
+       // print("Add request parameters: \(parameterString)")
         request.httpBody = parameterString.data(using: .utf8)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -136,18 +136,18 @@ class Macros: ObservableObject {
             }
 
             if let httpResponse = response as? HTTPURLResponse {
-               // print("Add HTTP Status Code: \(httpResponse.statusCode)")
-                // print("Add Response Headers: \(httpResponse.allHeaderFields)")
+                print("Add HTTP Status Code: \(httpResponse.statusCode)")
+               // print("Add Response Headers: \(httpResponse.allHeaderFields)")
             }
 
             if let data = data, let rawResponse = String(data: data, encoding: .utf8) {
-                //print("Add raw server response: \(rawResponse)")
+               // print("Add raw server response: \(rawResponse)")
             } else {
-               // print("No response body received from addMacros")
+              //  print("No response body received from addMacros")
             }
 
             guard let data = data else {
-                //print("No data received from addMacros")
+              //  print("No data received from addMacros")
                 let noDataError = NSError(domain: "Add Error", code: 0, userInfo: [NSLocalizedDescriptionKey: "No data received"])
                 DispatchQueue.main.async {
                     self.errorMessage = "No data received"
@@ -166,12 +166,14 @@ class Macros: ObservableObject {
                         completion(.success(success))
                     }
                 } else {
-                    throw NSError(domain: "Parse Error", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid response format"])
+                    let rawResponse = String(data: data, encoding: .utf8) ?? "No response body"
+                    print("Unexpected response format: \(rawResponse)")
+                    throw NSError(domain: "Parse Error", code: 0, userInfo: [NSLocalizedDescriptionKey: "Unexpected response format"])
                 }
             } catch {
                 print("Add decoding error: \(error)")
                 DispatchQueue.main.async {
-                    self.errorMessage = error.localizedDescription
+                    self.errorMessage = "Failed to parse server response"
                     self.addSuccess = false
                     completion(.failure(error))
                 }
