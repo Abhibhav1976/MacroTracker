@@ -163,7 +163,7 @@ struct FloatTabItem: View {
                 withAnimation(.easeInOut(duration: 0.6)) {
                     rotation = 360
                 }
-                withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
+                withAnimation(.easeInOut(duration: 1.2)/*.repeatForever(autoreverses: true)*/) {
                     pulse = 1.2
                 }
             } else {

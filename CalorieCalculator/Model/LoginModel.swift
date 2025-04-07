@@ -64,7 +64,7 @@ class LoginModel: ObservableObject {
     typealias LoginCompletion = (Result<UserResponse, Error>) -> Void
     
     func login(username: String, password: String, completion: @escaping LoginCompletion) {
-        let url = URL(string: "http://35.200.184.145:8080/CalorieCalculator-1.0-SNAPSHOT/login")!
+        let url = URL(string: "http://macrotracker.duckdns.org:8080/CalorieCalculator-1.0-SNAPSHOT/login")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("true", forHTTPHeaderField: "X-Mobile-App")

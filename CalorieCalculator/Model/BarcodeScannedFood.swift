@@ -20,7 +20,7 @@ struct BarcodeScannedFood: Identifiable {
 
 func fetchFoodByBarcode(barcode: String, userId: Int, completion: @escaping (Result<BarcodeScannedFood?, Error>) -> Void) {
     // API URL
-    guard let url = URL(string: "http://35.200.184.145:8080/CalorieCalculator-1.0-SNAPSHOT/scanFood") else {
+    guard let url = URL(string: "http://macrotracker.duckdns.org:8080/CalorieCalculator-1.0-SNAPSHOT/scanFood") else {
         let urlError = NSError(domain: "API Error", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])
         completion(.failure(urlError))
         return

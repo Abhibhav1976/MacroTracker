@@ -24,7 +24,7 @@ class SignUpModel: ObservableObject {
     typealias SignUpCompletion = (Result<SignUpResponse, Error>) -> Void
     
     func signup(username: String, displayName: String, email: String, password: String, completion: @escaping SignUpCompletion) {
-        let url = URL(string: "http://35.200.184.145:8080/CalorieCalculator-1.0-SNAPSHOT/signup")!
+        let url = URL(string: "http://macrotracker.duckdns.org:8080/CalorieCalculator-1.0-SNAPSHOT/signup")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("true", forHTTPHeaderField: "X-Mobile-App")

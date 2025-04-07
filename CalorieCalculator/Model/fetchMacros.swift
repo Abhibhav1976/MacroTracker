@@ -19,7 +19,7 @@ class Macros: ObservableObject {
 
     func fetchMacros(userId: Int, entryDate: String, completion: @escaping (Result<[MacroResponse], Error>) -> Void) {
         // Replace with the new URL
-        guard let url = URL(string: "http://35.200.184.145:8080/CalorieCalculator-1.0-SNAPSHOT/FindMacro") else {
+        guard let url = URL(string: "http://macrotracker.duckdns.org:8080/CalorieCalculator-1.0-SNAPSHOT/FindMacro") else {
             print("Invalid URL")
             completion(.failure(NSError(domain: "URL Error", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
             return
@@ -96,7 +96,7 @@ class Macros: ObservableObject {
         completion: @escaping (Result<Bool, Error>) -> Void
     ) {
         // Replace with the new URL
-        guard let url = URL(string: "http://35.200.184.145:8080/CalorieCalculator-1.0-SNAPSHOT/LogMacro") else {
+        guard let url = URL(string: "http://macrotracker.duckdns.org:8080/CalorieCalculator-1.0-SNAPSHOT/LogMacro") else {
             print("Invalid URL")
             completion(.failure(NSError(domain: "URL Error", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
             return

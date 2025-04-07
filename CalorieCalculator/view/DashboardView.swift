@@ -11,6 +11,11 @@
 //  Up-and-Down Animation Removed and Macro Prism Added by Grok 3 on 03/15/25.
 //  Gradient Animation Fully Removed by Grok 3 on 03/16/25.
 //  Fixed by Grok 3 on 03/17/25 to resolve button and data issues.
+//  Water Intake and Action Buttons Redesigned by Grok 3 on 04/07/25.
+//  Adjusted Water Card Width for Horizontal Button Layout by Grok 3 on 04/07/25.
+//  Fixed Button Functionality and Proportions by Grok 3 on 04/07/25.
+//  Increased Padding for Edge Safety by Grok 3 on 04/07/25.
+//  Removed Comma from Calories Display by Grok 3 on 04/07/25.
 //
 
 import SwiftUI
@@ -52,29 +57,19 @@ struct DashboardView: View {
                         .padding(.vertical, 12)
                     
                     TabView(selection: $selectedTab) {
-                        TodayView(macrosModel: macrosModel, isAnimating: isAnimating)
-                            .tag(0)
+                        TodayView(
+                            macrosModel: macrosModel,
+                            isAnimating: isAnimating,
+                            showingQuickAdd: $showingQuickAdd,
+                            showingScanner: $showingScanner
+                        )
+                        .tag(0)
                         InsightsView(macrosModel: macrosModel, isAnimating: isAnimating)
                             .tag(1)
                     }
                     .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
                     
                     Spacer()
-                }
-                
-                // Right-side action button cluster
-                VStack {
-                    Spacer()
-                    HStack {
-                        Spacer()
-                        ActionButtonCluster(
-                            showingQuickAdd: $showingQuickAdd,
-                            showingScanner: $showingScanner,
-                            isAnimating: isAnimating
-                        )
-                        .padding(.trailing, 24)
-                        .padding(.bottom, 150) // Increased from 100 to 150 to avoid overlap with tips
-                    }
                 }
             }
             .navigationBarHidden(true)
@@ -185,7 +180,6 @@ struct FloatingGlyphsView: View {
                     .rotationEffect(.degrees(glyph.rotation))
                     .animation(
                         Animation.easeInOut(duration: Double.random(in: 6...10)),
-                           // .repeatForever(autoreverses: true),
                         value: glyph.opacity
                     )
             }
@@ -221,7 +215,7 @@ struct DynamicHeaderView: View {
                 )
                 .shadow(color: ModernColors.primary.opacity(0.4), radius: 8)
                 .onAppear {
-                    withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
+                    withAnimation(.easeInOut(duration: 3.0)) {
                         hueRotation = 45
                     }
                 }
@@ -276,15 +270,21 @@ struct GlassTabSelector: View {
 struct TodayView: View {
     @ObservedObject var macrosModel: Macros
     var isAnimating: Bool
+    @Binding var showingQuickAdd: Bool
+    @Binding var showingScanner: Bool
     
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 24) {
                 MacroDashboardCard(macrosModel: macrosModel, isAnimating: isAnimating)
                 QuickTipsCard()
-                WaterTrackerCard()
+                WaterAndActionRow(
+                    showingQuickAdd: $showingQuickAdd,
+                    showingScanner: $showingScanner,
+                    isAnimating: isAnimating
+                )
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, 32) // Increased padding for edge safety
             .padding(.top, 12)
         }
     }
@@ -317,7 +317,7 @@ struct MacroDashboardCard: View {
                 .shadow(color: ModernColors.neumorphicShadow.opacity(0.3), radius: 8, x: 3, y: 3)
             
             VStack(spacing: 8) {
-                Text("\(caloriesLeft, specifier: "%d")") // Updated to remove comma
+                Text(String(caloriesLeft)) // Changed to direct string conversion to remove comma
                     .font(.custom("Azeret Mono", size: 36).bold())
                     .foregroundStyle(LinearGradient(colors: [ModernColors.highlight, ModernColors.primary], startPoint: .top, endPoint: .bottom))
                 Text("cal left")
@@ -413,7 +413,7 @@ struct QuickTipsCard: View {
                 Text(tips[currentTip])
                     .font(.custom("Azeret Mono", size: 14))
                     .foregroundColor(ModernColors.text)
-                    .layoutPriority(1) // Ensures text takes priority over button
+                    .layoutPriority(1)
                 Spacer()
                 Button(action: { currentTip = (currentTip + 1) % tips.count }) {
                     Image(systemName: "arrow.right")
@@ -426,67 +426,77 @@ struct QuickTipsCard: View {
     }
 }
 
-// MARK: - Water Tracker Card
-struct WaterTrackerCard: View {
+// MARK: - Water and Action Row
+struct WaterAndActionRow: View {
+    @Binding var showingQuickAdd: Bool
+    @Binding var showingScanner: Bool
+    let isAnimating: Bool
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            CompactWaterTrackerCard()
+                .frame(width: 180) // Adjusted to fit within safer margins
+            
+            HStack(spacing: 12) {
+                QuickAddButton(showingQuickAdd: $showingQuickAdd, isAnimating: isAnimating)
+                ScanBarcodeButton(showingScanner: $showingScanner, isAnimating: isAnimating)
+            }
+        }
+    }
+}
+
+// MARK: - Compact Water Tracker Card
+struct CompactWaterTrackerCard: View {
     @State private var glasses = 0
     let goal = 8
     
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: 16)
                 .fill(ModernColors.glassLight)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: 16)
                         .stroke(ModernColors.neumorphicHighlight.opacity(0.3), lineWidth: 1)
                 )
-            HStack {
+            
+            HStack(spacing: 12) {
                 ZStack {
                     Circle()
-                        .stroke(ModernColors.surfaceHover, lineWidth: 6)
-                        .frame(width: 50, height: 50)
+                        .stroke(ModernColors.surfaceHover, lineWidth: 4)
+                        .frame(width: 40, height: 40)
                     Circle()
                         .trim(from: 0, to: CGFloat(glasses) / CGFloat(goal))
-                        .stroke(ModernColors.secondary, style: StrokeStyle(lineWidth: 6, lineCap: .round))
-                        .frame(width: 50, height: 50)
+                        .stroke(ModernColors.secondary, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                        .frame(width: 40, height: 40)
                         .rotationEffect(.degrees(-90))
                     Text("\(glasses)")
-                        .font(.custom("Azeret Mono", size: 14).bold())
+                        .font(.custom("Azeret Mono", size: 12).bold())
                         .foregroundColor(ModernColors.text)
                 }
-                VStack(alignment: .leading) {
-                    Text("Water Intake")
-                        .font(.custom("Azeret Mono", size: 14))
-                        .foregroundColor(ModernColors.text)
-                    Text("\(goal - glasses) glasses left")
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Water")
                         .font(.custom("Azeret Mono", size: 12))
+                        .foregroundColor(ModernColors.text)
+                    Text("\(goal - glasses) left")
+                        .font(.custom("Azeret Mono", size: 10))
                         .foregroundColor(ModernColors.muted)
                 }
+                
                 Spacer()
+                
                 Button(action: { glasses = min(glasses + 1, goal) }) {
                     Image(systemName: "plus")
+                        .font(.system(size: 14))
                         .foregroundColor(ModernColors.secondary)
                 }
             }
-            .padding(16)
+            .padding(12)
         }
     }
 }
 
-// MARK: - Action Button Cluster
-struct ActionButtonCluster: View {
-    @Binding var showingQuickAdd: Bool
-    @Binding var showingScanner: Bool
-    var isAnimating: Bool
-    
-    var body: some View {
-        VStack(spacing: 20) {
-            QuickAddButton(showingQuickAdd: $showingQuickAdd, isAnimating: isAnimating)
-            ScanBarcodeButton(showingScanner: $showingScanner, isAnimating: isAnimating)
-        }
-    }
-}
-
-// MARK: - Quick Add Button (Animation Removed)
+// MARK: - Quick Add Button
 struct QuickAddButton: View {
     @Binding var showingQuickAdd: Bool
     let isAnimating: Bool
@@ -499,7 +509,6 @@ struct QuickAddButton: View {
             ZStack {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(ModernColors.glassDark)
-                    .frame(width: 70, height: 70)
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
                             .stroke(
@@ -511,7 +520,7 @@ struct QuickAddButton: View {
                 
                 VStack(spacing: 4) {
                     Image(systemName: "plus")
-                        .font(.system(size: 22, weight: .semibold))
+                        .font(.system(size: 18, weight: .semibold))
                         .foregroundColor(ModernColors.primary)
                     Text("Quick Add")
                         .font(.custom("Azeret Mono", size: 10))
@@ -519,9 +528,9 @@ struct QuickAddButton: View {
                 }
             }
         }
+        .frame(width: 70, height: 70) // Square dimensions
         .scaleEffect(isHovered ? 1.05 : 1.0)
         .opacity(isAnimating ? 1 : 0)
-        // Removed .offset(y:) animation
         .animation(.easeInOut(duration: 0.4), value: isAnimating)
         .onHover { hovering in
             withAnimation(.easeInOut(duration: 0.2)) {
@@ -531,7 +540,7 @@ struct QuickAddButton: View {
     }
 }
 
-// MARK: - Scan Barcode Button (Animation Removed)
+// MARK: - Scan Barcode Button
 struct ScanBarcodeButton: View {
     @Binding var showingScanner: Bool
     let isAnimating: Bool
@@ -544,7 +553,6 @@ struct ScanBarcodeButton: View {
             ZStack {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(ModernColors.glassDark)
-                    .frame(width: 70, height: 70)
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
                             .stroke(
@@ -556,7 +564,7 @@ struct ScanBarcodeButton: View {
                 
                 VStack(spacing: 4) {
                     Image(systemName: "barcode")
-                        .font(.system(size: 22, weight: .semibold))
+                        .font(.system(size: 18, weight: .semibold))
                         .foregroundColor(ModernColors.secondary)
                     Text("Scan")
                         .font(.custom("Azeret Mono", size: 10))
@@ -564,10 +572,10 @@ struct ScanBarcodeButton: View {
                 }
             }
         }
+        .frame(width: 70, height: 70) // Square dimensions
         .scaleEffect(isHovered ? 1.05 : 1.0)
         .opacity(isAnimating ? 1 : 0)
-        // Removed .offset(y:) animation
-        .animation(.easeInOut(duration: 0.4), value: isAnimating) // Removed delay
+        .animation(.easeInOut(duration: 0.4), value: isAnimating)
         .onHover { hovering in
             withAnimation(.easeInOut(duration: 0.2)) {
                 isHovered = hovering
@@ -588,7 +596,7 @@ struct InsightsView: View {
                 NutrientBalanceGlassCard(isAnimating: isAnimating)
                 StreakGlassCard(isAnimating: isAnimating)
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, 32) // Increased padding for edge safety
             .padding(.top, 12)
         }
     }
@@ -782,7 +790,7 @@ struct PieSlice: Shape {
 struct StreakGlassCard: View {
     var isAnimating: Bool
     private let currentStreak = UserDefaults.standard.integer(forKey: "streak")
-    private let bestStreak = UserDefaults.standard.integer(forKey: "streak") // Using current streak as best streak for now
+    private let bestStreak = UserDefaults.standard.integer(forKey: "streak")
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
