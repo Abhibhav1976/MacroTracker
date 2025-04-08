@@ -1,0 +1,261 @@
+2025-03-12 11:12:23,099 INFO  [org.jboss.modules] (main) JBoss Modules version 2.1.6.Final
+2025-03-12 11:12:23,337 INFO  [org.jboss.msc] (main) JBoss MSC version 1.5.5.Final
+2025-03-12 11:12:23,339 INFO  [org.jboss.threads] (main) JBoss Threads version 2.4.0.Final
+2025-03-12 11:12:23,376 INFO  [org.jboss.as] (MSC service thread 1-3) WFLYSRV0049: WildFly 35.0.1.Final (WildFly Core 27.0.1.Final) starting
+2025-03-12 11:12:23,377 DEBUG [org.jboss.as.config] (MSC service thread 1-3) Configured system properties:
+	[Standalone] = 
+	apple.awt.application.name = Main
+	file.encoding = UTF-8
+	file.separator = /
+	ftp.nonProxyHosts = local|*.local|169.254/16|*.169.254/16
+	http.nonProxyHosts = local|*.local|169.254/16|*.169.254/16
+	java.awt.headless = true
+	java.class.path = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/jboss-modules.jar
+	java.class.version = 67.0
+	java.home = /Users/abhibhavrajsingh/Library/Java/JavaVirtualMachines/openjdk-23.0.1/Contents/Home
+	java.io.tmpdir = /var/folders/93/5kt7bnw937j9xjpmkflvs5n40000gn/T/
+	java.library.path = /Users/abhibhavrajsingh/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:.
+	java.net.preferIPv4Stack = true
+	java.runtime.name = OpenJDK Runtime Environment
+	java.runtime.version = 23.0.1+11-39
+	java.security.manager = allow
+	java.specification.name = Java Platform API Specification
+	java.specification.vendor = Oracle Corporation
+	java.specification.version = 23
+	java.util.logging.manager = org.jboss.logmanager.LogManager
+	java.vendor = Oracle Corporation
+	java.vendor.url = https://java.oracle.com/
+	java.vendor.url.bug = https://bugreport.java.com/bugreport/
+	java.version = 23.0.1
+	java.version.date = 2024-10-15
+	java.vm.compressedOopsMode = Zero based
+	java.vm.info = mixed mode, sharing
+	java.vm.name = OpenJDK 64-Bit Server VM
+	java.vm.specification.name = Java Virtual Machine Specification
+	java.vm.specification.vendor = Oracle Corporation
+	java.vm.specification.version = 23
+	java.vm.vendor = Oracle Corporation
+	java.vm.version = 23.0.1+11-39
+	javax.management.builder.initial = org.jboss.as.jmx.PluggableMBeanServerBuilder
+	jboss.home.dir = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly
+	jboss.host.name = abhibhavs-mac-mini
+	jboss.modules.system.pkgs = org.jboss.byteman
+	jboss.node.name = abhibhavs-mac-mini
+	jboss.qualified.host.name = abhibhavs-mac-mini.local
+	jboss.server.base.dir = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone
+	jboss.server.config.dir = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/configuration
+	jboss.server.data.dir = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/data
+	jboss.server.log.dir = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/log
+	jboss.server.name = abhibhavs-mac-mini
+	jboss.server.persist.config = true
+	jboss.server.temp.dir = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/tmp
+	jdk.debug = release
+	jdk.serialFilter = maxbytes=10485760;maxdepth=128;maxarray=100000;maxrefs=300000
+	line.separator = 
+
+	logging.configuration = file:/Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/configuration/logging.properties
+	module.path = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/modules
+	native.encoding = UTF-8
+	org.jboss.boot.log.file = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/log/server.log
+	org.jboss.resolver.warning = true
+	os.arch = aarch64
+	os.name = Mac OS X
+	os.version = 15.3.1
+	path.separator = :
+	socksNonProxyHosts = local|*.local|169.254/16|*.169.254/16
+	stderr.encoding = UTF-8
+	stdout.encoding = UTF-8
+	sun.arch.data.model = 64
+	sun.boot.library.path = /Users/abhibhavrajsingh/Library/Java/JavaVirtualMachines/openjdk-23.0.1/Contents/Home/lib
+	sun.cpu.endian = little
+	sun.io.unicode.encoding = UnicodeBig
+	sun.java.command = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/jboss-modules.jar -mp /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/modules org.jboss.as.standalone -Djboss.home.dir=/Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly -Djboss.server.base.dir=/Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone
+	sun.java.launcher = SUN_STANDARD
+	sun.jnu.encoding = UTF-8
+	sun.management.compiler = HotSpot 64-Bit Tiered Compilers
+	user.country = US
+	user.dir = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/bin
+	user.home = /Users/abhibhavrajsingh
+	user.language = en
+	user.name = abhibhavrajsingh
+	user.timezone = Asia/Kolkata
+2025-03-12 11:12:23,377 DEBUG [org.jboss.as.config] (MSC service thread 1-3) VM Arguments: -D[Standalone] -Djdk.serialFilter=maxbytes=10485760;maxdepth=128;maxarray=100000;maxrefs=300000 -Xms64m -Xmx512m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true --add-exports=java.desktop/sun.awt=ALL-UNNAMED --add-exports=java.naming/com.sun.jndi.ldap=ALL-UNNAMED --add-exports=java.naming/com.sun.jndi.url.ldap=ALL-UNNAMED --add-exports=java.naming/com.sun.jndi.url.ldaps=ALL-UNNAMED --add-exports=jdk.naming.dns/com.sun.jndi.dns=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.security=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.management/javax.management=ALL-UNNAMED --add-opens=java.naming/javax.naming=ALL-UNNAMED -Djava.security.manager=allow -Dorg.jboss.boot.log.file=/Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/log/server.log -Dlogging.configuration=file:/Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/configuration/logging.properties 
+2025-03-12 11:12:23,621 INFO  [org.wildfly.security] (Controller Boot Thread) ELY00001: WildFly Elytron version 2.6.0.Final
+2025-03-12 11:12:23,904 INFO  [org.jboss.as.repository] (ServerService Thread Pool -- 19) WFLYDR0001: Content added at location /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/data/content/87/1b5e5a5e9dc98b7abfb30a999faf026a27dc68/content
+2025-03-12 11:12:23,911 ERROR [org.jboss.as.controller.management-operation] (Controller Boot Thread) WFLYCTL0013: Operation ("add") failed - address: ([("deployment" => "CalorieCalculator-1.0-SNAPSHOT")]) - failure description: "WFLYSRV0205: There is already a deployment called CalorieCalculator-1.0-SNAPSHOT with the same runtime name CalorieCalculator-1.0-SNAPSHOT.war"
+2025-03-12 11:12:23,913 FATAL [org.jboss.as.server] (Controller Boot Thread) WFLYSRV0056: Server boot has failed in an unrecoverable manner; exiting. See previous messages for details. - Server configuration file in use: standalone.xml - Minimum feature stability level: community
+2025-03-12 11:12:23,916 INFO  [org.jboss.as] (MSC service thread 1-7) WFLYSRV0050: WildFly 35.0.1.Final (WildFly Core 27.0.1.Final) stopped in 1ms
+2025-03-12 11:12:32,038 INFO  [org.jboss.modules] (main) JBoss Modules version 2.1.6.Final
+2025-03-12 11:12:32,232 INFO  [org.jboss.msc] (main) JBoss MSC version 1.5.5.Final
+2025-03-12 11:12:32,235 INFO  [org.jboss.threads] (main) JBoss Threads version 2.4.0.Final
+2025-03-12 11:12:32,264 INFO  [org.jboss.as] (MSC service thread 1-2) WFLYSRV0049: WildFly 35.0.1.Final (WildFly Core 27.0.1.Final) starting
+2025-03-12 11:12:32,265 DEBUG [org.jboss.as.config] (MSC service thread 1-2) Configured system properties:
+	[Standalone] = 
+	apple.awt.application.name = Main
+	file.encoding = UTF-8
+	file.separator = /
+	ftp.nonProxyHosts = local|*.local|169.254/16|*.169.254/16
+	http.nonProxyHosts = local|*.local|169.254/16|*.169.254/16
+	java.awt.headless = true
+	java.class.path = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/jboss-modules.jar
+	java.class.version = 67.0
+	java.home = /Users/abhibhavrajsingh/Library/Java/JavaVirtualMachines/openjdk-23.0.1/Contents/Home
+	java.io.tmpdir = /var/folders/93/5kt7bnw937j9xjpmkflvs5n40000gn/T/
+	java.library.path = /Users/abhibhavrajsingh/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:.
+	java.net.preferIPv4Stack = true
+	java.runtime.name = OpenJDK Runtime Environment
+	java.runtime.version = 23.0.1+11-39
+	java.security.manager = allow
+	java.specification.name = Java Platform API Specification
+	java.specification.vendor = Oracle Corporation
+	java.specification.version = 23
+	java.util.logging.manager = org.jboss.logmanager.LogManager
+	java.vendor = Oracle Corporation
+	java.vendor.url = https://java.oracle.com/
+	java.vendor.url.bug = https://bugreport.java.com/bugreport/
+	java.version = 23.0.1
+	java.version.date = 2024-10-15
+	java.vm.compressedOopsMode = Zero based
+	java.vm.info = mixed mode, sharing
+	java.vm.name = OpenJDK 64-Bit Server VM
+	java.vm.specification.name = Java Virtual Machine Specification
+	java.vm.specification.vendor = Oracle Corporation
+	java.vm.specification.version = 23
+	java.vm.vendor = Oracle Corporation
+	java.vm.version = 23.0.1+11-39
+	javax.management.builder.initial = org.jboss.as.jmx.PluggableMBeanServerBuilder
+	jboss.home.dir = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly
+	jboss.host.name = abhibhavs-mac-mini
+	jboss.modules.system.pkgs = org.jboss.byteman
+	jboss.node.name = abhibhavs-mac-mini
+	jboss.qualified.host.name = abhibhavs-mac-mini.local
+	jboss.server.base.dir = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone
+	jboss.server.config.dir = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/configuration
+	jboss.server.data.dir = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/data
+	jboss.server.log.dir = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/log
+	jboss.server.name = abhibhavs-mac-mini
+	jboss.server.persist.config = true
+	jboss.server.temp.dir = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/tmp
+	jdk.debug = release
+	jdk.serialFilter = maxbytes=10485760;maxdepth=128;maxarray=100000;maxrefs=300000
+	line.separator = 
+
+	logging.configuration = file:/Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/configuration/logging.properties
+	module.path = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/modules
+	native.encoding = UTF-8
+	org.jboss.boot.log.file = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/log/server.log
+	org.jboss.resolver.warning = true
+	os.arch = aarch64
+	os.name = Mac OS X
+	os.version = 15.3.1
+	path.separator = :
+	socksNonProxyHosts = local|*.local|169.254/16|*.169.254/16
+	stderr.encoding = UTF-8
+	stdout.encoding = UTF-8
+	sun.arch.data.model = 64
+	sun.boot.library.path = /Users/abhibhavrajsingh/Library/Java/JavaVirtualMachines/openjdk-23.0.1/Contents/Home/lib
+	sun.cpu.endian = little
+	sun.io.unicode.encoding = UnicodeBig
+	sun.java.command = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/jboss-modules.jar -mp /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/modules org.jboss.as.standalone -Djboss.home.dir=/Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly -Djboss.server.base.dir=/Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone
+	sun.java.launcher = SUN_STANDARD
+	sun.jnu.encoding = UTF-8
+	sun.management.compiler = HotSpot 64-Bit Tiered Compilers
+	user.country = US
+	user.dir = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/bin
+	user.home = /Users/abhibhavrajsingh
+	user.language = en
+	user.name = abhibhavrajsingh
+	user.timezone = Asia/Kolkata
+2025-03-12 11:12:32,265 DEBUG [org.jboss.as.config] (MSC service thread 1-2) VM Arguments: -D[Standalone] -Djdk.serialFilter=maxbytes=10485760;maxdepth=128;maxarray=100000;maxrefs=300000 -Xms64m -Xmx512m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true --add-exports=java.desktop/sun.awt=ALL-UNNAMED --add-exports=java.naming/com.sun.jndi.ldap=ALL-UNNAMED --add-exports=java.naming/com.sun.jndi.url.ldap=ALL-UNNAMED --add-exports=java.naming/com.sun.jndi.url.ldaps=ALL-UNNAMED --add-exports=jdk.naming.dns/com.sun.jndi.dns=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.security=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.management/javax.management=ALL-UNNAMED --add-opens=java.naming/javax.naming=ALL-UNNAMED -Djava.security.manager=allow -Dorg.jboss.boot.log.file=/Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/log/server.log -Dlogging.configuration=file:/Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/configuration/logging.properties 
+2025-03-12 11:12:32,500 INFO  [org.wildfly.security] (Controller Boot Thread) ELY00001: WildFly Elytron version 2.6.0.Final
+2025-03-12 11:12:32,963 INFO  [org.jboss.as.server.deployment.scanner] (DeploymentScanner-threads - 1) WFLYDS0015: Re-attempting failed deployment CalorieCalculator-1.0-SNAPSHOT.war
+2025-03-12 11:12:33,200 ERROR [org.jboss.as.controller.management-operation] (Controller Boot Thread) WFLYCTL0013: Operation ("add") failed - address: ([("deployment" => "CalorieCalculator-1.0-SNAPSHOT")]) - failure description: "WFLYSRV0205: There is already a deployment called CalorieCalculator-1.0-SNAPSHOT with the same runtime name CalorieCalculator-1.0-SNAPSHOT.war"
+2025-03-12 11:12:33,202 FATAL [org.jboss.as.server] (Controller Boot Thread) WFLYSRV0056: Server boot has failed in an unrecoverable manner; exiting. See previous messages for details. - Server configuration file in use: standalone.xml - Minimum feature stability level: community
+2025-03-12 11:12:33,205 INFO  [org.jboss.as] (MSC service thread 1-7) WFLYSRV0050: WildFly 35.0.1.Final (WildFly Core 27.0.1.Final) stopped in 1ms
+2025-03-12 11:12:48,454 INFO  [org.jboss.modules] (main) JBoss Modules version 2.1.6.Final
+2025-03-12 11:12:48,657 INFO  [org.jboss.msc] (main) JBoss MSC version 1.5.5.Final
+2025-03-12 11:12:48,659 INFO  [org.jboss.threads] (main) JBoss Threads version 2.4.0.Final
+2025-03-12 11:12:48,689 INFO  [org.jboss.as] (MSC service thread 1-1) WFLYSRV0049: WildFly 35.0.1.Final (WildFly Core 27.0.1.Final) starting
+2025-03-12 11:12:48,690 DEBUG [org.jboss.as.config] (MSC service thread 1-1) Configured system properties:
+	[Standalone] = 
+	apple.awt.application.name = Main
+	file.encoding = UTF-8
+	file.separator = /
+	ftp.nonProxyHosts = local|*.local|169.254/16|*.169.254/16
+	http.nonProxyHosts = local|*.local|169.254/16|*.169.254/16
+	java.awt.headless = true
+	java.class.path = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/jboss-modules.jar
+	java.class.version = 67.0
+	java.home = /Users/abhibhavrajsingh/Library/Java/JavaVirtualMachines/openjdk-23.0.1/Contents/Home
+	java.io.tmpdir = /var/folders/93/5kt7bnw937j9xjpmkflvs5n40000gn/T/
+	java.library.path = /Users/abhibhavrajsingh/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:.
+	java.net.preferIPv4Stack = true
+	java.runtime.name = OpenJDK Runtime Environment
+	java.runtime.version = 23.0.1+11-39
+	java.security.manager = allow
+	java.specification.name = Java Platform API Specification
+	java.specification.vendor = Oracle Corporation
+	java.specification.version = 23
+	java.util.logging.manager = org.jboss.logmanager.LogManager
+	java.vendor = Oracle Corporation
+	java.vendor.url = https://java.oracle.com/
+	java.vendor.url.bug = https://bugreport.java.com/bugreport/
+	java.version = 23.0.1
+	java.version.date = 2024-10-15
+	java.vm.compressedOopsMode = Zero based
+	java.vm.info = mixed mode, sharing
+	java.vm.name = OpenJDK 64-Bit Server VM
+	java.vm.specification.name = Java Virtual Machine Specification
+	java.vm.specification.vendor = Oracle Corporation
+	java.vm.specification.version = 23
+	java.vm.vendor = Oracle Corporation
+	java.vm.version = 23.0.1+11-39
+	javax.management.builder.initial = org.jboss.as.jmx.PluggableMBeanServerBuilder
+	jboss.home.dir = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly
+	jboss.host.name = abhibhavs-mac-mini
+	jboss.modules.system.pkgs = org.jboss.byteman
+	jboss.node.name = abhibhavs-mac-mini
+	jboss.qualified.host.name = abhibhavs-mac-mini.local
+	jboss.server.base.dir = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone
+	jboss.server.config.dir = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/configuration
+	jboss.server.data.dir = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/data
+	jboss.server.log.dir = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/log
+	jboss.server.name = abhibhavs-mac-mini
+	jboss.server.persist.config = true
+	jboss.server.temp.dir = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/tmp
+	jdk.debug = release
+	jdk.serialFilter = maxbytes=10485760;maxdepth=128;maxarray=100000;maxrefs=300000
+	line.separator = 
+
+	logging.configuration = file:/Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/configuration/logging.properties
+	module.path = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/modules
+	native.encoding = UTF-8
+	org.jboss.boot.log.file = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/log/server.log
+	org.jboss.resolver.warning = true
+	os.arch = aarch64
+	os.name = Mac OS X
+	os.version = 15.3.1
+	path.separator = :
+	socksNonProxyHosts = local|*.local|169.254/16|*.169.254/16
+	stderr.encoding = UTF-8
+	stdout.encoding = UTF-8
+	sun.arch.data.model = 64
+	sun.boot.library.path = /Users/abhibhavrajsingh/Library/Java/JavaVirtualMachines/openjdk-23.0.1/Contents/Home/lib
+	sun.cpu.endian = little
+	sun.io.unicode.encoding = UnicodeBig
+	sun.java.command = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/jboss-modules.jar -mp /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/modules org.jboss.as.standalone -Djboss.home.dir=/Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly -Djboss.server.base.dir=/Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone
+	sun.java.launcher = SUN_STANDARD
+	sun.jnu.encoding = UTF-8
+	sun.management.compiler = HotSpot 64-Bit Tiered Compilers
+	user.country = US
+	user.dir = /Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/bin
+	user.home = /Users/abhibhavrajsingh
+	user.language = en
+	user.name = abhibhavrajsingh
+	user.timezone = Asia/Kolkata
+2025-03-12 11:12:48,690 DEBUG [org.jboss.as.config] (MSC service thread 1-1) VM Arguments: -D[Standalone] -Djdk.serialFilter=maxbytes=10485760;maxdepth=128;maxarray=100000;maxrefs=300000 -Xms64m -Xmx512m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true --add-exports=java.desktop/sun.awt=ALL-UNNAMED --add-exports=java.naming/com.sun.jndi.ldap=ALL-UNNAMED --add-exports=java.naming/com.sun.jndi.url.ldap=ALL-UNNAMED --add-exports=java.naming/com.sun.jndi.url.ldaps=ALL-UNNAMED --add-exports=jdk.naming.dns/com.sun.jndi.dns=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.security=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.management/javax.management=ALL-UNNAMED --add-opens=java.naming/javax.naming=ALL-UNNAMED -Djava.security.manager=allow -Dorg.jboss.boot.log.file=/Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/log/server.log -Dlogging.configuration=file:/Users/abhibhavrajsingh/IdeaProjects/CalorieCalculator/wildfly/standalone/configuration/logging.properties 
+2025-03-12 11:12:48,915 INFO  [org.wildfly.security] (Controller Boot Thread) ELY00001: WildFly Elytron version 2.6.0.Final
+2025-03-12 11:12:49,054 INFO  [org.jboss.as.server.deployment.scanner] (DeploymentScanner-threads - 1) WFLYDS0015: Re-attempting failed deployment CalorieCalculator-1.0-SNAPSHOT.war
+2025-03-12 11:12:49,263 ERROR [org.jboss.as.controller.management-operation] (Controller Boot Thread) WFLYCTL0013: Operation ("add") failed - address: ([("deployment" => "CalorieCalculator-1.0-SNAPSHOT")]) - failure description: "WFLYSRV0205: There is already a deployment called CalorieCalculator-1.0-SNAPSHOT with the same runtime name CalorieCalculator-1.0-SNAPSHOT.war"
+2025-03-12 11:12:49,265 FATAL [org.jboss.as.server] (Controller Boot Thread) WFLYSRV0056: Server boot has failed in an unrecoverable manner; exiting. See previous messages for details. - Server configuration file in use: standalone.xml - Minimum feature stability level: community
+2025-03-12 11:12:49,268 INFO  [org.jboss.as] (MSC service thread 1-8) WFLYSRV0050: WildFly 35.0.1.Final (WildFly Core 27.0.1.Final) stopped in 2ms

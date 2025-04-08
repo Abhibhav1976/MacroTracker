@@ -1,0 +1,16 @@
+runtime: java17  # Latest supported Java runtime
+env: flex
+
+handlers:
+  - url: /.*
+    script: auto
+
+automatic_scaling:
+  min_num_instances: 1
+  max_num_instances: 5
+  cool_down_period_sec: 180
+  cpu_utilization:
+    target_utilization: 0.65
+
+runtime_config:
+  jdk: openjdk17  # Upgrade to Java 21
