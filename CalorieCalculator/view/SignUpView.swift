@@ -76,7 +76,7 @@ struct SignUpView: View {
                                 .animation(.easeIn(duration: 0.5).delay(0.3), value: isAnimating)
                         }
                         .padding(.top, 40)
-                        
+                         
                         // Sign Up Form with staggered animations
                         VStack(spacing: 24) {
                             // Username Field

@@ -214,11 +214,12 @@ struct DynamicHeaderView: View {
                     )
                 )
                 .shadow(color: ModernColors.primary.opacity(0.4), radius: 8)
-                .onAppear {
+               /* .onAppear {
                     withAnimation(.easeInOut(duration: 3.0)) {
                         hueRotation = 45
                     }
                 }
+                */
             Text(Date(), style: .date)
                 .font(.custom("Azeret Mono", size: 16))
                 .foregroundColor(ModernColors.muted)

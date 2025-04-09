@@ -1,10 +1,3 @@
-//
-//  BarcodeScannedFoodLoggingView.swift
-//  CalorieCalculator
-//
-//  Created by Abhibhav RajSingh on 31/12/24.
-//
-
 import SwiftUI
 
 struct CalculatedMacros: Codable {
@@ -25,7 +18,6 @@ struct Serving: Codable {
         self.macros = macros
     }
 
-    // Custom decoding to handle default value for `amount`
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.amount = try container.decodeIfPresent(Double.self, forKey: .amount) ?? 100
@@ -33,7 +25,6 @@ struct Serving: Codable {
         self.macros = try container.decode(CalculatedMacros.self, forKey: .macros)
     }
 
-    // Encoding is straightforward, no changes required
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(amount, forKey: .amount)
@@ -45,7 +36,6 @@ struct Serving: Codable {
         case amount, unit, macros
     }
 }
-
 
 struct BarcodeScannedFoodLoggingView: View {
     @Binding var isPresented: Bool
@@ -73,7 +63,6 @@ struct BarcodeScannedFoodLoggingView: View {
             return CalculatedMacros(calories: 0, fat: 0, carbs: 0, protein: 0)
         }
         
-        // Calculate multiplier based on serving size (100g is base) Need to add More Serving Options later
         let multiplier = amount / 100.0
         
         return CalculatedMacros(
@@ -94,28 +83,29 @@ struct BarcodeScannedFoodLoggingView: View {
             PopupView(title: "Log Scanned Food", isPresented: $isPresented) {
                 VStack(spacing: 20) {
                     Text(foodItem.displayName)
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.white)
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(ModernColors.text)
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 20)
+                        .background(
+                            Capsule()
+                                .fill(ModernColors.glassLight)
+                                .shadow(color: ModernColors.neonPulse.opacity(0.4), radius: 6)
+                        )
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .shadow(color: ModernColors.neonPulse.opacity(0.3), radius: 4)
 
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Meal Type")
-                            .foregroundColor(ColorPalette.subtext)
-
-                        HStack {
-                            ForEach(mealTypes, id: \ .self) { type in
-                                Button(action: { selectedMealType = type }) {
-                                    Text(type)
-                                        .foregroundColor(selectedMealType == type ? .white : ColorPalette.subtext)
-                                        .padding(.vertical, 8)
-                                        .padding(.horizontal, 12)
-                                        .background(
-                                            selectedMealType == type ?
-                                                ColorPalette.primaryButton :
-                                                Color(hex: "#1E1E1E")
-                                        )
-                                        .cornerRadius(8)
-                                }
+                        HStack(spacing: 12) {
+                            Spacer()
+                            ForEach(mealTypes, id: \.self) { type in
+                                BarcodeMealTypeIcon(
+                                    type: type,
+                                    isSelected: selectedMealType == type,
+                                    action: { selectedMealType = type }
+                                )
                             }
+                            Spacer()
                         }
                         
                         StyledTextField(
@@ -175,5 +165,70 @@ struct BarcodeScannedFoodLoggingView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.string(from: Date())
+    }
+}
+
+// Helper View: BarcodeMealTypeIcon (Unchanged)
+struct BarcodeMealTypeIcon: View {
+    let type: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    private var iconName: String {
+        switch type {
+        case "Breakfast": return "sunrise.fill"
+        case "Lunch": return "sun.max.fill"
+        case "Dinner": return "moon.stars.fill"
+        case "Snacks": return "leaf.fill"
+        default: return ""
+        }
+    }
+    
+    private var typeColor: Color {
+        switch type {
+        case "Breakfast": return ModernColors.primary
+        case "Lunch": return ModernColors.secondary
+        case "Dinner": return ModernColors.accent
+        case "Snacks": return ModernColors.tertiary
+        default: return ModernColors.muted
+        }
+    }
+    
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                Circle()
+                    .fill(isSelected ? typeColor.opacity(0.7) : ModernColors.glassLight)
+                    .frame(width: 40, height: 40)
+                    .overlay(
+                        Circle()
+                            .stroke(ModernColors.neumorphicHighlight.opacity(isSelected ? 0.7 : 0.3), lineWidth: 1)
+                    )
+                
+                Image(systemName: iconName)
+                    .font(.system(size: 16))
+                    .foregroundStyle(ModernColors.text)
+            }
+        }
+    }
+}
+
+// Preview
+struct BarcodeScannedFoodLoggingView_Previews: PreviewProvider {
+    static var previews: some View {
+        BarcodeScannedFoodLoggingView(
+            isPresented: .constant(true),
+            foodItem: LoggedFoodItem(
+                barcode: "12345",
+                displayName: "Sample Food",
+                calories: 200,
+                carbs: 30.0,
+                protein: 10.0,
+                fat: 5.0,
+                scannedDate: "2024-04-09",
+                standardServing: Serving(amount: 100, unit: "g", macros: CalculatedMacros(calories: 200, fat: 5.0, carbs: 30.0, protein: 10.0))
+            )
+        )
+        .environmentObject(Macros())
     }
 }

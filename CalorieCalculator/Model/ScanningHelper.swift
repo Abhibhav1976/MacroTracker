@@ -25,7 +25,12 @@ struct LoggedFoodItem {
     var protein: Double
     var fat: Double
     var scannedDate: String
-    var standardServing: Serving? 
+    var standardServing: Serving?
+}
+
+// Helper function to calculate calories from macros
+func calculateCalories(carbs: Double, protein: Double, fat: Double) -> Int {
+    return Int((carbs * 4) + (protein * 4) + (fat * 9))
 }
 
 func fetchFoodInfo(
@@ -48,6 +53,12 @@ func fetchFoodInfo(
     request.httpMethod = "POST"
     request.addValue("true", forHTTPHeaderField: "X-Mobile-App")
     request.addValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+
+    print("Preparing to send food info to server with the following data:")
+    print("Barcode: \(barcode)")
+    print("UserID: \(userId)")
+    print("Food Name: \(foodName)")
+    print("Calories: \(calories), Carbs: \(carbs), Protein: \(protein), Fat: \(fat)")
 
     let parameters = [
         "barcode": barcode,
@@ -83,6 +94,17 @@ func fetchFoodInfo(
                     return
                 }
 
+                let message = json["message"] as? String ?? "Unknown error"
+                
+                if !success {
+                    // Server returned an error (e.g., "Barcode and User ID are required")
+                    let serverError = NSError(domain: "API Error", code: 0, userInfo: [NSLocalizedDescriptionKey: message])
+                    print("Server error: \(message)")
+                    completion(.failure(serverError))
+                    return
+                }
+
+                // Success case
                 let scannedFood = ScannedFood(
                     foodName: json["foodName"] as? String ?? "",
                     calories: json["calories"] as? Int ?? 0,
@@ -90,8 +112,9 @@ func fetchFoodInfo(
                     protein: (json["protein"] as? NSNumber)?.doubleValue ?? 0.0,
                     fat: (json["fat"] as? NSNumber)?.doubleValue ?? 0.0,
                     success: success,
-                    message: json["message"] as? String ?? "Food scanned successfully"
+                    message: message // e.g., "Food scanned successfully"
                 )
+                print("Successfully saved food: \(scannedFood.foodName)")
                 completion(.success(scannedFood))
             } else {
                 let jsonError = NSError(domain: "API Error", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid response format"])

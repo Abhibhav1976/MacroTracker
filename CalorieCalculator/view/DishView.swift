@@ -109,6 +109,9 @@ struct DishView: View {
         .sheet(isPresented: $showingSearch) {
             FoodSearchView(isPresented: $showingSearch)
         }
+        .sheet(isPresented: $showingScanner) {
+            ScanFoodCameraView()
+        }
     }
     
     private var headerSection: some View {

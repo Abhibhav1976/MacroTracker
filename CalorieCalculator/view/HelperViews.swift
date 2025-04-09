@@ -1109,10 +1109,10 @@ struct ModernTextField: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             TextField("", text: $text)
-                .placeholder(when: text.isEmpty) {
+                .placeholder(when: text.isEmpty, content: {
                     Text(placeholder)
                         .foregroundColor(ModernColors.muted)
-                }
+                })
                 .keyboardType(keyboardType)
                 .textFieldStyle(PlainTextFieldStyle())
                 .font(.system(size: 16))

@@ -13,8 +13,7 @@ struct LoginView: View {
     @State private var showingDashboard = false
     @State private var username: String = ""
     @State private var password: String = ""
-    @State private var errorMessage: String? = nil
-
+    
     // Animation states
     @State private var isAnimating = false
     @State private var isLoading = false
@@ -98,11 +97,14 @@ struct LoginView: View {
                         .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.3), value: isAnimating)
 
                         // Error Message
-                        if let errorMessage = errorMessage {
+                        if let errorMessage = loginModel.errorMessage {
                             Text(errorMessage)
                                 .font(.caption)
                                 .foregroundColor(ColorPalette.error)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
                                 .transition(.move(edge: .top).combined(with: .opacity))
+                                .animation(.easeInOut, value: loginModel.errorMessage)
                         }
 
                         // Login Button
@@ -122,8 +124,32 @@ struct LoginView: View {
                                             UserDefaults.standard.set(false, forKey: "isDailyGoalsSetupComplete")
                                         }
                                     case .failure(let error):
+                                        var errorMessage = error.localizedDescription
+
+                                        if let urlError = error as? URLError {
+                                            switch urlError.code {
+                                            case .notConnectedToInternet:
+                                                errorMessage = "No internet connection. Please check your connection and try again."
+                                            case .timedOut:
+                                                errorMessage = "The request timed out. Please try again in a moment."
+                                            case .cannotFindHost, .cannotConnectToHost:
+                                                errorMessage = "Server is currently unavailable. Please try again later."
+                                            default:
+                                                errorMessage = "Network error: \(urlError.localizedDescription)"
+                                            }
+                                        } else if let decodingError = error as? DecodingError {
+                                            switch decodingError {
+                                            case .typeMismatch(_, let context),
+                                                 .valueNotFound(_, let context),
+                                                 .keyNotFound(_, let context):
+                                                errorMessage = "Data format issue: \(context.debugDescription)"
+                                            default:
+                                                errorMessage = "Unexpected response format. Please contact support if this continues."
+                                            }
+                                        }
+
                                         withAnimation {
-                                            errorMessage = error.localizedDescription
+                                            loginModel.errorMessage = errorMessage
                                         }
                                     }
                                 }
