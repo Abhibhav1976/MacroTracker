@@ -29,6 +29,7 @@ struct UserResponse: Codable {
     let streak: Int?
     let lastLoggedDate: String?
     let error: String?
+    let token: String? // Added token field
 
     enum CodingKeys: String, CodingKey {
         case success
@@ -51,6 +52,7 @@ struct UserResponse: Codable {
         case streak
         case lastLoggedDate
         case error
+        case token // Added token case
     }
 }
 
@@ -125,6 +127,10 @@ class LoginModel: ObservableObject {
                             UserDefaults.standard.set(jsonData, forKey: "userResponse")
                         }
                         
+                        if let token = userResponse.token { // Store token
+                            UserDefaults.standard.set(token, forKey: "authToken")
+                        }
+                        
                         UserDefaults.standard.set(true, forKey: "loginSuccess")
                         UserDefaults.standard.set(id, forKey: "UserId")
                         UserDefaults.standard.set(password, forKey: "password")
@@ -167,6 +173,95 @@ class LoginModel: ObservableObject {
             }
         }.resume()
     }
+
+    func validateToken(completion: @escaping (Bool) -> Void) {
+        guard let token = UserDefaults.standard.string(forKey: "authToken") else {
+            print("No token found in UserDefaults")
+            completion(false)
+            return
+        }
+
+        guard let url = URL(string: "http://macrotracker.duckdns.org:8080/CalorieCalculator-1.0-SNAPSHOT/validateToken") else {
+            print("Invalid validateToken URL")
+            completion(false)
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("true", forHTTPHeaderField: "X-Mobile-App")
+        request.addValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+
+        let parameters = "token=\(token)"
+        request.httpBody = parameters.data(using: .utf8)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Token validation error: \(error.localizedDescription)")
+                completion(false)
+                return
+            }
+
+            guard let data = data else {
+                print("No data received for token validation")
+                completion(false)
+                return
+            }
+
+            if let httpResponse = response as? HTTPURLResponse {
+                print("ValidateToken HTTP Status: \(httpResponse.statusCode)")
+            }
+
+            if let rawResponse = String(data: data, encoding: .utf8) {
+                print("Raw validateToken response: \(rawResponse)")
+            }
+
+            do {
+                let userResponse = try JSONDecoder().decode(UserResponse.self, from: data)
+
+                DispatchQueue.main.async {
+                    self.userResponse = userResponse // Update the userResponse
+                    self.loginSuccess = true
+
+                    // Store the user data in UserDefaults
+                    if let jsonData = try? JSONEncoder().encode(userResponse) {
+                        UserDefaults.standard.set(jsonData, forKey: "userResponse")
+                    }
+
+                    // Store the token in UserDefaults
+                    if let token = userResponse.token {
+                        UserDefaults.standard.set(token, forKey: "authToken")
+                    }
+
+                    // Store individual user details in UserDefaults
+                    if let userId = userResponse.userId {
+                        UserDefaults.standard.set(userId, forKey: "UserId")
+                    }
+                    if let username = userResponse.username {
+                        UserDefaults.standard.set(username, forKey: "username")
+                    }
+                    if let password = userResponse.password {
+                        UserDefaults.standard.set(password, forKey: "password")
+                    }
+                    if let memberType = userResponse.memberType {
+                        UserDefaults.standard.set(memberType, forKey: "memberType")
+                    }
+                    if let streak = userResponse.streak {
+                        UserDefaults.standard.set(streak, forKey: "streak")
+                    }
+
+                    // Ensure UserDefaults are synchronized
+                    UserDefaults.standard.synchronize()
+
+                    // Trigger the UI update by notifying that data is updated
+                    completion(true)
+                }
+            } catch {
+                print("Token validation parse error: \(error.localizedDescription)")
+                completion(false)
+            }
+        }.resume()
+    }
 }
 extension LoginModel {
     func logout() {
@@ -177,6 +272,7 @@ extension LoginModel {
         UserDefaults.standard.removeObject(forKey: "username")
         UserDefaults.standard.removeObject(forKey: "displayName")
         UserDefaults.standard.removeObject(forKey: "userResponse")
+        UserDefaults.standard.removeObject(forKey: "authToken") // Remove token
         UserDefaults.standard.synchronize()
 
         // Reset model state

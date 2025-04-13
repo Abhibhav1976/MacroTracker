@@ -3,6 +3,7 @@
 //  CalorieCalculator
 //
 //  Created by Abhibhav RajSingh on 27/12/24.
+//  Search Performance Optimized by Grok 3 on 04/13/25.
 //
 
 import SwiftUI
@@ -480,8 +481,6 @@ struct LoadingView: View {
         }
     }
 }
-
-
 
 #Preview {
     DishView()

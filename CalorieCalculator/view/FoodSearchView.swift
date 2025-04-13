@@ -3,6 +3,7 @@
 //  CalorieCalculator
 //
 //  Created by Abhibhav RajSingh on 29/12/24.
+//  Search Performance Optimized by Grok 3 on 04/13/25.
 //
 
 import SwiftUI
@@ -13,6 +14,7 @@ struct FoodSearchView: View {
     let userId = UserDefaults.standard.integer(forKey: "UserId")
     @State private var selectedFood: FoodItem?
     @EnvironmentObject var macrosModel: Macros
+    @FocusState private var isSearchFieldFocused: Bool // NEW: Focus state for TextField
 
     var body: some View {
         NavigationView {
@@ -20,7 +22,7 @@ struct FoodSearchView: View {
                 LinearGradient(
                     gradient: Gradient(colors: [
                         ModernColors.background,
-                        ModernColors.surface,
+                        ModernColors.surface.opacity(0.8), // CHANGED: Lighter opacity for faster rendering
                         ModernColors.background
                     ]),
                     startPoint: .topLeading,
@@ -30,66 +32,74 @@ struct FoodSearchView: View {
 
                 VStack(spacing: 0) {
                     enhancedSearchBar
+                        .padding(.horizontal, 16)
                         .padding(.top, 8)
                     
                     contentArea
-                        .padding(.top, 16)
+                        .padding(.top, 12)
                 }
             }
-            .navigationTitle("Food Search")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Text("Food Search")
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(ModernColors.text)
+                        .font(.custom("Azeret Mono", size: 24).bold())
+                        .dynamicTypeSize(.large...DynamicTypeSize.xxLarge)                        .foregroundColor(ModernColors.text)
+                }
+                ToolbarItem(placement: .navigationBarLeading) {
+                    dismissButton
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    cancelButton // NEW: Cancel button for ongoing searches
                 }
             }
-            .navigationBarItems(
-                leading: dismissButton,
-                trailing: filterButton
-            )
+            .onAppear {
+                // NEW: Focus TextField after a short delay to ensure view is loaded
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    isSearchFieldFocused = true
+                }
+            }
         }
     }
 
     private var enhancedSearchBar: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 18, weight: .medium))
+                .font(.system(size: 16)) // CHANGED: Smaller icon for cleaner look
                 .foregroundColor(ModernColors.muted)
             
             TextField("Search foods...", text: $viewModel.searchText)
-                .textFieldStyle(PlainTextFieldStyle())
-                .font(.system(size: 16))
+                .font(.custom("Azeret Mono", size: 16)) // CHANGED: Consistent font
                 .foregroundColor(ModernColors.text)
-                .accentColor(ModernColors.primary)
-                
+                .focused($isSearchFieldFocused)
+                .submitLabel(.search) // NEW: Enable search on return key
+            
             if !viewModel.searchText.isEmpty {
-                Button(action: { viewModel.searchText = "" }) {
+                Button(action: {
+                    viewModel.searchText = ""
+                    viewModel.cancelSearch() // NEW: Cancel ongoing search
+                    isSearchFieldFocused = true
+                }) {
                     Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 14))
                         .foregroundColor(ModernColors.muted)
-                        .font(.system(size: 16))
                 }
-                .transition(.scale)
-                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.searchText)
+                // CHANGED: Removed transition to reduce overhead
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.vertical, 10)
+        .padding(.horizontal, 12)
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(ModernColors.surface)
+            RoundedRectangle(cornerRadius: 10)
+                .fill(ModernColors.glassLight) // CHANGED: Glass effect for consistency with DashboardView
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(ModernColors.muted.opacity(0.2), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(ModernColors.neumorphicHighlight.opacity(0.2), lineWidth: 1)
                 )
         )
-        .shadow(color: Color.black.opacity(0.1), radius: 8)
-        .padding(.horizontal)
+        // CHANGED: Removed shadow for performance
         .onChange(of: viewModel.searchText) { _ in
-            withAnimation(.easeInOut(duration: 0.2)) {
-                viewModel.performSearch() // Trigger search again
-            }
+            viewModel.performSearch()
         }
     }
 
@@ -99,6 +109,8 @@ struct FoodSearchView: View {
                 enhancedLoadingView
             } else if let error = viewModel.error {
                 enhancedErrorView(error: error)
+            } else if !viewModel.recentSearches.isEmpty && viewModel.searchText.isEmpty {
+                recentSearchesView // NEW: Show recent searches when empty
             } else {
                 enhancedFoodList
             }
@@ -106,49 +118,94 @@ struct FoodSearchView: View {
     }
 
     private var enhancedLoadingView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 12) {
             ProgressView()
-                .scaleEffect(1.2)
+                .scaleEffect(1.1)
                 .tint(ModernColors.primary)
             
             Text("Finding foods...")
-                .font(.system(size: 16))
+                .font(.custom("Azeret Mono", size: 14)) // CHANGED: Consistent font
                 .foregroundColor(ModernColors.muted)
-                .padding(.top, 8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func enhancedErrorView(error: Error) -> some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
             Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 40))
+                .font(.system(size: 32))
                 .foregroundColor(ModernColors.error)
             
-            Text("Oops! Something went wrong")
-                .font(.system(size: 20, weight: .bold))
+            Text("Something went wrong")
+                .font(.custom("Azeret Mono", size: 16))
+                .dynamicTypeSize(.small...DynamicTypeSize.large)
                 .foregroundColor(ModernColors.text)
             
             Text(error.localizedDescription)
-                .font(.system(size: 16))
+                .font(.custom("Azeret Mono", size: 14))
                 .foregroundColor(ModernColors.muted)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal)
             
-            Button(action: viewModel.loadFoodData) {
+            Button(action: {
+                Task {
+                    await viewModel.loadFoodData() // Wrap async call in Task
+                }
+            }) {
                 Label("Try Again", systemImage: "arrow.clockwise")
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.custom("Azeret Mono", size: 16))
                     .foregroundColor(ModernColors.text)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
                     .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(ModernColors.primary)
-                            .shadow(color: ModernColors.primary.opacity(0.3), radius: 8, x: 0, y: 4)
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(ModernColors.glassLight)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(ModernColors.neumorphicHighlight.opacity(0.3), lineWidth: 1)
+                            )
                     )
             }
         }
-        .padding()
+        .padding(24)
+    }
+
+    private var recentSearchesView: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Recent Searches")
+                .font(.custom("Azeret Mono", size: 16))
+                .dynamicTypeSize(.small...DynamicTypeSize.large)
+                .foregroundColor(ModernColors.text)
+                .padding(.horizontal, 16)
+            
+            ScrollView {
+                LazyVStack(spacing: 8) {
+                    ForEach(viewModel.recentSearches, id: \.self) { term in
+                        Button(action: {
+                            viewModel.searchText = term
+                            viewModel.performSearch()
+                            isSearchFieldFocused = true
+                        }) {
+                            HStack {
+                                Image(systemName: "clock")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(ModernColors.muted)
+                                Text(term)
+                                    .font(.custom("Azeret Mono", size: 14))
+                                    .foregroundColor(ModernColors.text)
+                                Spacer()
+                            }
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 16)
+                            .background(ModernColors.glassLight)
+                            .cornerRadius(8)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+                .padding(.horizontal, 16)
+            }
+        }
+        .frame(maxWidth: .infinity)
     }
 
     private var enhancedFoodList: some View {
@@ -157,17 +214,17 @@ struct FoodSearchView: View {
                 emptyStateView
             } else {
                 ScrollView {
-                    LazyVStack(spacing: 12) {
+                    LazyVStack(spacing: 10) {
                         ForEach(viewModel.searchResults) { food in
                             Button(action: {
                                 selectedFood = food
                             }) {
                                 EnhancedFoodRowView(food: food)
-                                    .transition(.opacity.combined(with: .scale))
+                                    .transition(.opacity) // CHANGED: Simplified transition
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
-                        if !viewModel.searchResults.isEmpty {
+                        if !viewModel.searchResults.isEmpty && viewModel.hasMoreResults {
                             Color.clear
                                 .frame(height: 1)
                                 .onAppear {
@@ -175,28 +232,30 @@ struct FoodSearchView: View {
                                 }
                         }
                     }
-                    .padding(.horizontal)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 20)
                 }
             }
         }
         .sheet(item: $selectedFood) { food in
             MacroDetailView(food: food, userId: userId)
+                .environmentObject(macrosModel)
         }
     }
 
     private var emptyStateView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 12) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 40))
+                .font(.system(size: 32))
                 .foregroundColor(ModernColors.muted)
-                .padding(.bottom, 8)
             
             Text("No foods found")
-                .font(.system(size: 20, weight: .bold))
+                .font(.custom("Azeret Mono", size: 18).bold())
+                .dynamicTypeSize(.medium...DynamicTypeSize.xLarge)
                 .foregroundColor(ModernColors.text)
             
             Text("Try adjusting your search terms")
-                .font(.system(size: 16))
+                .font(.custom("Azeret Mono", size: 14))
                 .foregroundColor(ModernColors.muted)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -205,29 +264,27 @@ struct FoodSearchView: View {
     private var dismissButton: some View {
         Button(action: { isPresented = false }) {
             Image(systemName: "xmark")
-                .font(.system(size: 16, weight: .medium))
+                .font(.system(size: 14))
                 .foregroundColor(ModernColors.muted)
                 .padding(8)
-                .background(
-                    Circle()
-                        .fill(ModernColors.surface)
-                        .shadow(color: Color.black.opacity(0.1), radius: 4)
-                )
+                .background(ModernColors.glassLight)
+                .clipShape(Circle())
         }
     }
     
-    private var filterButton: some View {
-        Button(action: {}) {
-            Image(systemName: "line.3.horizontal.decrease.circle")
-                .font(.system(size: 20))
+    private var cancelButton: some View {
+        Button(action: {
+            viewModel.cancelSearch()
+            isSearchFieldFocused = true
+        }) {
+            Text("Cancel")
+                .font(.custom("Azeret Mono", size: 14))
                 .foregroundColor(ModernColors.primary)
                 .padding(8)
-                .background(
-                    Circle()
-                        .fill(ModernColors.surface)
-                        .shadow(color: Color.black.opacity(0.1), radius: 4)
-                )
+                .background(ModernColors.glassLight)
+                .cornerRadius(8)
         }
+        .opacity(viewModel.isLoading ? 1 : 0) // NEW: Show only when loading
     }
 }
 
@@ -236,27 +293,28 @@ struct EnhancedFoodRowView: View {
     @State private var isHovered = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             // Header
             HStack {
                 Text(food.displayName)
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.custom("Azeret Mono", size: 16))
+                    .dynamicTypeSize(.small...DynamicTypeSize.large)
                     .foregroundColor(ModernColors.text)
                 
                 Spacer()
                 
                 Text("\(food.standardServing.macros.calories) kcal")
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.custom("Azeret Mono", size: 14))
                     .foregroundColor(ModernColors.primary)
             }
             
             // Serving Info
             Text("Per \(String(format: "%.2f", food.standardServing.amount)) \(food.standardServing.unit)")
-                .font(.system(size: 14))
+                .font(.custom("Azeret Mono", size: 12))
                 .foregroundColor(ModernColors.muted)
             
             // Macros Grid
-            HStack(spacing: 16) {
+            HStack(spacing: 12) {
                 MacroLabel(
                     icon: "flame.fill",
                     value: String(format: "%.0f", Double(food.standardServing.macros.calories)),
@@ -287,19 +345,25 @@ struct EnhancedFoodRowView: View {
             }
             if let brand = food.brandName {
                 Text(brand)
-                    .font(.system(size: 14))
-                    .foregroundColor(ColorPalette.subtext)
+                    .font(.custom("Azeret Mono", size: 12))
+                    .foregroundColor(ModernColors.muted)
             }
         }
-        .padding(16)
+        .padding(12)
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(ModernColors.surface)
+            RoundedRectangle(cornerRadius: 10)
+                .fill(ModernColors.glassLight)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(ModernColors.muted.opacity(0.1), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(ModernColors.neumorphicHighlight.opacity(isHovered ? 0.3 : 0.1), lineWidth: 1)
                 )
         )
+        .scaleEffect(isHovered ? 1.02 : 1)
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isHovered = hovering
+            }
+        }
     }
 }
 
@@ -312,10 +376,10 @@ struct MacroLabel: View {
     var body: some View {
         VStack(spacing: 4) {
             Image(systemName: icon)
-                .font(.system(size: 14))
+                .font(.system(size: 12))
                 .foregroundColor(color)
             Text("\(value)\(unit)")
-                .font(.system(size: 14))
+                .font(.custom("Azeret Mono", size: 12))
                 .foregroundColor(ModernColors.muted)
         }
     }
@@ -431,26 +495,25 @@ struct MacroRow: View {
     let icon: String
     
     var body: some View {
-        HStack(spacing: 12) {
-            // Icon Container
+        HStack(spacing: 10) {
             Image(systemName: icon)
+                .font(.system(size: 14))
                 .foregroundColor(ModernColors.primary)
-                .font(.system(size: 16))
             
             Text(title)
-                .font(.system(size: 16))
+                .font(.custom("Azeret Mono", size: 14))
                 .foregroundColor(ModernColors.text)
             
             Spacer()
             
             Text("\(value) \(unit)")
-                .font(.system(size: 16))
+                .font(.custom("Azeret Mono", size: 14))
                 .foregroundColor(ModernColors.muted)
         }
-        .padding(12)
+        .padding(10)
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(ModernColors.surface)
+            RoundedRectangle(cornerRadius: 8)
+                .fill(ModernColors.glassDark)
         )
     }
 }

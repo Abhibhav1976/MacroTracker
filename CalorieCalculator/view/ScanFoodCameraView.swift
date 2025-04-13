@@ -14,6 +14,7 @@ struct ScanFoodCameraView: View {
     @State private var navigateToMealPicker = false
     @State private var selectedMealType: String = ""
     @State private var showMealTypeSelection = false
+    @State var queryResult: ImageQueryResult?
 
     var body: some View {
         NavigationStack {
@@ -29,6 +30,22 @@ struct ScanFoodCameraView: View {
                         .frame(maxWidth: 300, maxHeight: 300)
                         .cornerRadius(12)
                         .padding()
+                }
+
+                if let result = queryResult {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Estimated Calories").font(.headline)
+                        Text("Dish: \(result.label)")
+                        Text("Calories: \(result.calories) kcal")
+                        Text("Protein: \(result.protein)g")
+                        Text("Carbs: \(result.carbs)g")
+                        Text("Fat: \(result.fat)g")
+                            .padding(.bottom)
+                    }
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
+                    .padding(.horizontal)
                 }
 
                 Button(action: {
@@ -64,13 +81,17 @@ struct ScanFoodCameraView: View {
             }
             .sheet(isPresented: $isPickerPresented) {
                 ImagePicker(selectedImage: $selectedImage, onImagePicked: {
-                    // This is where we'll call the resize function from ImageScaling.swift later
                     navigateToMealPicker = true
                 })
             }
             .onAppear {
                 withAnimation(.easeIn(duration: 0.5)) {
                     showMealTypeSelection = true
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("ImageQueryResultNotification"))) { notification in
+                if let result = notification.object as? ImageQueryResult {
+                    self.queryResult = result
                 }
             }
         }
@@ -104,9 +125,24 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
 
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-            if let image = info[.originalImage] as? UIImage {
-                parent.selectedImage = image
-                parent.onImagePicked()
+            if let image = info[.originalImage] as? UIImage,
+               let scaledImage = image.scaledTo720p(),
+               let imageData = scaledImage.jpegData(compressionQuality: 0.8) {
+                let base64String = imageData.base64EncodedString()
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd"
+                let today = formatter.string(from: Date())
+                image.sendToServer(entryDate: today) { result in
+                    switch result {
+                    case .success(let response):
+                        DispatchQueue.main.async {
+                            self.parent.selectedImage = scaledImage
+                            NotificationCenter.default.post(name: Notification.Name("ImageQueryResultNotification"), object: response)
+                        }
+                    case .failure(let error):
+                        print("Image query failed: \(error.localizedDescription)")
+                    }
+                }
             }
             picker.dismiss(animated: true)
         }

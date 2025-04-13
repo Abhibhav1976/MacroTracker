@@ -16,6 +16,7 @@
 //  Fixed Button Functionality and Proportions by Grok 3 on 04/07/25.
 //  Increased Padding for Edge Safety by Grok 3 on 04/07/25.
 //  Removed Comma from Calories Display by Grok 3 on 04/07/25.
+//  Background Updated to Darker LoginView Style with Falling Stars by Grok 3 on 04/13/25.
 //
 
 import SwiftUI
@@ -42,10 +43,10 @@ struct DashboardView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                AnimatedGradientBackground()
+                DarkLoginGradientBackground()
                     .ignoresSafeArea()
                 
-                FloatingGlyphsView()
+                FallingStarsView()
                     .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
@@ -151,14 +152,14 @@ struct DashboardView: View {
     }
 }
 
-// MARK: - Animated Gradient Background
-struct AnimatedGradientBackground: View {
+// MARK: - Dark Login Gradient Background
+struct DarkLoginGradientBackground: View {
     var body: some View {
         LinearGradient(
             gradient: Gradient(colors: [
-                ModernColors.background,
-                ModernColors.surface.opacity(0.7),
-                ModernColors.background.opacity(0.9)
+                ModernColors.voidBlack,
+                ModernColors.background.opacity(0.5),
+                ModernColors.voidBlack.opacity(0.8)
             ]),
             startPoint: .topLeading,
             endPoint: .bottomTrailing
@@ -166,35 +167,69 @@ struct AnimatedGradientBackground: View {
     }
 }
 
-// MARK: - Floating Glyphs
-struct FloatingGlyphsView: View {
-    @State private var glyphs: [Glyph] = (0..<10).map { _ in Glyph() }
+// MARK: - Falling Stars
+struct FallingStarsView: View {
+    @State private var stars: [Star] = (0..<15).map { _ in Star() }
     
     var body: some View {
         ZStack {
-            ForEach(glyphs) { glyph in
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(ModernColors.glyphGlow.opacity(glyph.opacity))
-                    .frame(width: glyph.width, height: glyph.height)
-                    .position(glyph.position)
-                    .rotationEffect(.degrees(glyph.rotation))
+            ForEach(stars) { star in
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: star.size, height: star.size)
+                    .position(star.position)
+                    .offset(x: star.offsetX, y: star.offsetY)
+                    .opacity(star.opacity)
                     .animation(
-                        Animation.easeInOut(duration: Double.random(in: 6...10)),
-                        value: glyph.opacity
+                        Animation.linear(duration: star.duration)
+                            .delay(star.delay)
+                            .repeatForever(autoreverses: false),
+                        value: star.offsetY
                     )
+            }
+        }
+        .onAppear {
+            for index in stars.indices {
+                stars[index].offsetX = Star.calculateOffsetX()
+                stars[index].offsetY = Star.calculateOffsetY()
+                stars[index].opacity = Star.calculateOpacity()
             }
         }
     }
 }
 
-struct Glyph: Identifiable {
+struct Star: Identifiable {
     let id = UUID()
-    let position: CGPoint = CGPoint(x: CGFloat.random(in: 0...UIScreen.main.bounds.width),
-                                   y: CGFloat.random(in: 0...UIScreen.main.bounds.height))
-    let width: CGFloat = CGFloat.random(in: 10...30)
-    let height: CGFloat = CGFloat.random(in: 2...10)
-    let rotation: Double = Double.random(in: 0...45)
-    var opacity: Double = Double.random(in: 0.05...0.2)
+    let size: CGFloat = CGFloat.random(in: 1...3)
+    let position: CGPoint
+    var offsetX: CGFloat = 0
+    var offsetY: CGFloat = 0
+    var opacity: Double = 1.0
+    let duration: Double = Double.random(in: 2...4)
+    let delay: Double = Double.random(in: 0...3)
+    
+    init() {
+        // Start above the screen, random x-position
+        self.position = CGPoint(
+            x: CGFloat.random(in: 0...UIScreen.main.bounds.width),
+            y: -10
+        )
+    }
+    
+    static func calculateOffsetX() -> CGFloat {
+        // Move diagonally to bottom-right
+        return CGFloat.random(in: 100...200)
+    }
+    
+    static func calculateOffsetY() -> CGFloat {
+        // Fall below the screen
+        return UIScreen.main.bounds.height + 10
+    }
+    
+    static func calculateOpacity() -> Double {
+        // Fade out slightly as it falls
+        return Double.random(in: 0.3...0.6)
+    }
 }
 
 // MARK: - Dynamic Header

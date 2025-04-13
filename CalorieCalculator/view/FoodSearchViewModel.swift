@@ -3,9 +3,11 @@
 //  CalorieCalculator
 //
 //  Created by Abhibhav RajSingh on 30/12/24.
+//  Search Performance Optimized by Grok 3 on 04/13/25.
 //
 
 import SwiftUI
+import Combine
 
 @MainActor
 class FoodSearchViewModel: ObservableObject {
@@ -14,115 +16,92 @@ class FoodSearchViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var error: Error?
     @Published var currentPage = 0
-    @Published var noResultsMessage: String? // Added for user feedback
+    @Published var noResultsMessage: String?
+    @Published var recentSearches: [String] = [] // NEW: Track recent searches
     
     private var allFoods: [FoodItem] = []
     private var searchTask: Task<Void, Never>?
-    private var searchDebounceTimer: Timer?
     private let resultsPerPage = 20
+    private var cancellables = Set<AnyCancellable>()
     
-    // Optimized inverted index (kept as is for now, but see notes on trie)
-    private var nameIndex: [String: Set<FoodItem>] = [:]
-    private var brandIndex: [String: Set<FoodItem>] = [:]
+    // NEW: Trie for faster prefix-based search
+    private var nameTrie = Trie()
+    private var brandTrie = Trie()
+    
+    // NEW: Cache for common foods
+    private var commonFoods: [FoodItem] = []
     
     init() {
-        loadFoodData()
+        // NEW: Load recent searches
+        if let savedSearches = UserDefaults.standard.array(forKey: "recentSearches") as? [String] {
+            recentSearches = savedSearches.prefix(5).map { $0 }
+        }
+        
+        // NEW: Load data asynchronously
+        Task {
+            await loadFoodData()
+        }
+        
+        // NEW: Debounce search input
+        $searchText
+            .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.performSearch()
+            }
+            .store(in: &cancellables)
     }
     
-    // Paginate results based on the current search with lazy loading
+    // NEW: Paginate results with lazy loading
     var paginatedResults: [FoodItem] {
         let startIndex = currentPage * resultsPerPage
         let endIndex = min(startIndex + resultsPerPage, filteredFoods.count)
         guard startIndex < filteredFoods.count else { return [] }
-        return Array(filteredFoods.lazy[startIndex..<endIndex]) // Use lazy to optimize for large datasets
+        return Array(filteredFoods[startIndex..<endIndex])
     }
     
-    // Build indices once after data is loaded
-    private func buildSearchIndices() {
-        nameIndex.removeAll()
-        brandIndex.removeAll()
-        
-        for food in allFoods {
-            let nameWords = food.displayName.lowercased().split(separator: " ")
-            for word in nameWords {
-                nameIndex[String(word), default: []].insert(food)
-            }
-            nameIndex[food.displayName.lowercased(), default: []].insert(food)
-            
-            if let brand = food.brandName?.lowercased() {
-                let brandWords = brand.split(separator: " ")
-                for word in brandWords {
-                    brandIndex[String(word), default: []].insert(food)
-                }
-                brandIndex[brand, default: []].insert(food)
-            }
-        }
+    var hasMoreResults: Bool {
+        (currentPage + 1) * resultsPerPage < filteredFoods.count
     }
     
-    // Load the food data asynchronously
-    func loadFoodData() {
-        Task {
-            do {
-                isLoading = true
-                guard let url = Bundle.main.url(forResource: "food_raw_responses", withExtension: "json") else {
-                    throw NSError(domain: "FoodDataError", code: -1,
-                                  userInfo: [NSLocalizedDescriptionKey: "Food data file not found"])
-                }
-                
-                let data = try Data(contentsOf: url)
-                let decoder = JSONDecoder()
-                let response = try decoder.decode(FoodResponse.self, from: data) // Fixed 'Wdata' to 'data'
-                
-                await MainActor.run {
-                    self.allFoods = response.foods.food
-                    self.buildSearchIndices()
-                    self.searchResults = []
-                    self.isLoading = false
-                }
-            } catch {
-                print("Loading Error: \(error)")
-                await MainActor.run {
-                    self.error = error
-                    self.isLoading = false
-                    self.noResultsMessage = "Failed to load food data. Please try again."
-                }
-            }
-        }
-    }
-    
-    // Optimized filtering logic using pre-built indices
+    // NEW: Trie-based filtering
     var filteredFoods: [FoodItem] {
         guard !searchText.trimmingCharacters(in: .whitespaces).isEmpty else { return [] }
         
-        let searchTerms = searchText.lowercased().split(separator: " ").map(String.init)
+        let lowercasedSearchText = searchText.lowercased()
+        let searchTerms = lowercasedSearchText.split(separator: " ").map(String.init)
         
-        var results: Set<FoodItem>?
+        var results: Set<FoodItem> = []
         
+        // NEW: Use common foods for short queries
+        let useCommonFoods = lowercasedSearchText.count <= 3 && !commonFoods.isEmpty
+        let baseFoods = useCommonFoods ? commonFoods : allFoods
+        
+        // NEW: Trie-based search for first term
         if let firstTerm = searchTerms.first {
-            let nameMatches = nameIndex[firstTerm] ?? []
-            let brandMatches = brandIndex[firstTerm] ?? []
-            results = nameMatches.union(brandMatches)
+            let nameMatches = nameTrie.findWords(prefix: firstTerm).compactMap { $0 as? FoodItem }
+            let brandMatches = brandTrie.findWords(prefix: firstTerm).compactMap { $0 as? FoodItem }
+            results = Set(nameMatches).union(brandMatches)
         }
         
+        // Refine with additional terms
         for term in searchTerms.dropFirst() {
-            let nameMatches = nameIndex[term] ?? []
-            let brandMatches = brandIndex[term] ?? []
-            let combinedMatches = nameMatches.union(brandMatches)
-            
-            if results == nil {
-                results = combinedMatches
-            } else {
-                results = results?.intersection(combinedMatches)
-            }
+            let nameMatches = nameTrie.findWords(prefix: term).compactMap { $0 as? FoodItem }
+            let brandMatches = brandTrie.findWords(prefix: term).compactMap { $0 as? FoodItem }
+            let combinedMatches = Set(nameMatches).union(brandMatches)
+            results = results.intersection(combinedMatches)
         }
         
-        if results?.isEmpty ?? true {
-            results = Set(allFoods.filter { food in
-                searchTerms.contains { food.displayName.lowercased().contains($0) || (food.brandName?.lowercased().contains($0) ?? false) }
+        // Fallback to substring search if no exact matches
+        if results.isEmpty {
+            results = Set(baseFoods.filter { food in
+                searchTerms.contains { term in
+                    food.displayName.lowercased().contains(term) ||
+                    (food.brandName?.lowercased().contains(term) ?? false)
+                }
             })
         }
         
-        return Array(results ?? [])
+        return Array(results)
             .sorted {
                 let score1 = relevanceScore(for: $0)
                 let score2 = relevanceScore(for: $1)
@@ -130,7 +109,6 @@ class FoodSearchViewModel: ObservableObject {
             }
     }
     
-    // Enhanced relevance scoring
     private func relevanceScore(for food: FoodItem) -> Int {
         let lowercasedSearchText = searchText.lowercased()
         let searchTerms = lowercasedSearchText.split(separator: " ").map(String.init)
@@ -141,15 +119,14 @@ class FoodSearchViewModel: ObservableObject {
         
         for term in searchTerms {
             if displayName == term || brandName == term {
-                score += 4  // Exact match for a term
+                score += 4
             } else if displayName.hasPrefix(term) || brandName.hasPrefix(term) {
-                score += 3  // Prefix match for a term
+                score += 3
             } else if displayName.contains(term) || brandName.contains(term) {
-                score += 1  // Substring match for a term
+                score += 1
             }
         }
         
-        // Bonus for full prefix match of the entire search text
         if displayName.hasPrefix(lowercasedSearchText) || brandName.hasPrefix(lowercasedSearchText) {
             score += 2
         }
@@ -157,32 +134,208 @@ class FoodSearchViewModel: ObservableObject {
         return score
     }
     
-    // Perform the search with increased debounce time and better feedback
-    func performSearch() {
-        searchTask?.cancel()
-        searchDebounceTimer?.invalidate()
-        
-        searchDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
-            guard let self = self else { return }
-            self.currentPage = 0
-            self.isLoading = true
-            self.noResultsMessage = nil // Reset message
+    // CHANGED: Asynchronous data loading with caching
+    func loadFoodData() async {
+        do {
+            isLoading = true
             
-            self.searchTask = Task {
-                await MainActor.run {
-                    self.searchResults = self.paginatedResults
-                    self.isLoading = false
-                    if self.searchResults.isEmpty && !self.searchText.isEmpty {
-                        self.noResultsMessage = "No results found for '\(self.searchText)'"
-                    }
+            // NEW: Check for cached indices
+            if let cachedData = loadCachedIndices() {
+                allFoods = cachedData.foods
+                nameTrie = cachedData.nameTrie
+                brandTrie = cachedData.brandTrie
+                commonFoods = cachedData.commonFoods
+                isLoading = false
+                return
+            }
+            
+            guard let url = Bundle.main.url(forResource: "food_raw_responses", withExtension: "json") else {
+                throw NSError(domain: "FoodDataError", code: -1,
+                            userInfo: [NSLocalizedDescriptionKey: "Food data file not found"])
+            }
+            
+            let data = try Data(contentsOf: url)
+            let decoder = JSONDecoder()
+            let response = try decoder.decode(FoodResponse.self, from: data)
+            
+            allFoods = response.foods.food
+            buildSearchIndices()
+            
+            // NEW: Cache common foods (e.g., top 100 by usage or predefined)
+            commonFoods = Array(allFoods.prefix(100))
+            
+            // NEW: Save indices to cache
+            saveCachedIndices(foods: allFoods, nameTrie: nameTrie, brandTrie: brandTrie, commonFoods: commonFoods)
+            
+            isLoading = false
+        } catch {
+            print("Loading Error: \(error)")
+            await MainActor.run {
+                                self.error = error
+                                self.isLoading = false
+                                self.noResultsMessage = "Failed to load food data. Please try again."
+                            }
+        }
+    }
+    
+    // NEW: Build trie-based indices
+    private func buildSearchIndices() {
+        nameTrie = Trie()
+        brandTrie = Trie()
+        
+        for food in allFoods {
+            let nameWords = food.displayName.lowercased().split(separator: " ")
+            for word in nameWords {
+                nameTrie.insert(word: String(word), value: food)
+            }
+            nameTrie.insert(word: food.displayName.lowercased(), value: food)
+            
+            if let brand = food.brandName?.lowercased() {
+                let brandWords = brand.split(separator: " ")
+                for word in brandWords {
+                    brandTrie.insert(word: String(word), value: food)
                 }
+                brandTrie.insert(word: brand, value: food)
             }
         }
     }
     
-    // Load more results when the user scrolls
+    // NEW: Cache management
+    private func loadCachedIndices() -> (foods: [FoodItem], nameTrie: Trie, brandTrie: Trie, commonFoods: [FoodItem])? {
+        guard let cacheURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?.appendingPathComponent("foodIndices.cache"),
+              FileManager.default.fileExists(atPath: cacheURL.path),
+              let data = try? Data(contentsOf: cacheURL),
+              let cached = try? NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data) as? FoodIndicesCache else {
+            return nil
+        }
+        return (cached.foods, cached.nameTrie, cached.brandTrie, cached.commonFoods)
+    }
+    
+    private func saveCachedIndices(foods: [FoodItem], nameTrie: Trie, brandTrie: Trie, commonFoods: [FoodItem]) {
+        let cache = FoodIndicesCache(foods: foods, nameTrie: nameTrie, brandTrie: brandTrie, commonFoods: commonFoods)
+        do {
+            let data = try NSKeyedArchiver.archivedData(withRootObject: cache, requiringSecureCoding: false)
+            let cacheURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!.appendingPathComponent("foodIndices.cache")
+            try data.write(to: cacheURL)
+        } catch {
+            print("Cache Save Error: \(error)")
+        }
+    }
+    
+    // NEW: Cancel ongoing search
+    func cancelSearch() {
+        searchTask?.cancel()
+        isLoading = false
+        noResultsMessage = nil
+    }
+    
+    // CHANGED: Optimized search with trie and recent searches
+    func performSearch() {
+        searchTask?.cancel()
+        
+        guard !searchText.trimmingCharacters(in: .whitespaces).isEmpty else {
+            searchResults = []
+            noResultsMessage = nil
+            return
+        }
+        
+        isLoading = true
+        noResultsMessage = nil
+        
+        searchTask = Task {
+            searchResults = paginatedResults
+            isLoading = false
+            if searchResults.isEmpty {
+                noResultsMessage = "No results for '\(searchText)'"
+            }
+            
+            // NEW: Update recent searches
+            if !searchText.isEmpty && !recentSearches.contains(searchText) {
+                recentSearches.insert(searchText, at: 0)
+                if recentSearches.count > 5 {
+                    recentSearches.removeLast()
+                }
+                UserDefaults.standard.set(recentSearches, forKey: "recentSearches")
+            }
+        }
+    }
+    
     func loadMoreResults() {
+        guard hasMoreResults else { return }
         currentPage += 1
         searchResults.append(contentsOf: paginatedResults)
+    }
+}
+
+// NEW: Trie implementation for efficient prefix search
+class Trie {
+    private class Node {
+        var children: [Character: Node] = [:]
+        var values: [Any] = []
+        var isEndOfWord: Bool = false
+    }
+    
+    private let root = Node()
+    
+    func insert(word: String, value: Any) {
+        var current = root
+        for char in word.lowercased() {
+            if current.children[char] == nil {
+                current.children[char] = Node()
+            }
+            current = current.children[char]!
+        }
+        current.isEndOfWord = true
+        current.values.append(value)
+    }
+    
+    func findWords(prefix: String) -> [Any] {
+        var current = root
+        for char in prefix.lowercased() {
+            guard let nextNode = current.children[char] else { return [] }
+            current = nextNode
+        }
+        return collectValues(from: current)
+    }
+    
+    private func collectValues(from node: Node) -> [Any] {
+        var results: [Any] = node.isEndOfWord ? node.values : []
+        for (_, child) in node.children {
+            results.append(contentsOf: collectValues(from: child))
+        }
+        return results
+    }
+}
+
+// NEW: Cache structure
+class FoodIndicesCache: NSObject, NSSecureCoding {
+    static var supportsSecureCoding: Bool = true
+    
+    let foods: [FoodItem]
+    let nameTrie: Trie
+    let brandTrie: Trie
+    let commonFoods: [FoodItem]
+    
+    init(foods: [FoodItem], nameTrie: Trie, brandTrie: Trie, commonFoods: [FoodItem]) {
+        self.foods = foods
+        self.nameTrie = nameTrie
+        self.brandTrie = brandTrie
+        self.commonFoods = commonFoods
+        super.init()
+    }
+    
+    required init?(coder: NSCoder) {
+        foods = coder.decodeObject(forKey: "foods") as? [FoodItem] ?? []
+        nameTrie = coder.decodeObject(forKey: "nameTrie") as? Trie ?? Trie()
+        brandTrie = coder.decodeObject(forKey: "brandTrie") as? Trie ?? Trie()
+        commonFoods = coder.decodeObject(forKey: "commonFoods") as? [FoodItem] ?? []
+        super.init()
+    }
+    
+    func encode(with coder: NSCoder) {
+        coder.encode(foods, forKey: "foods")
+        coder.encode(nameTrie, forKey: "nameTrie")
+        coder.encode(brandTrie, forKey: "brandTrie")
+        coder.encode(commonFoods, forKey: "commonFoods")
     }
 }

@@ -1,31 +1,27 @@
-//
-//  ContentView.swift
-//  CalorieCalculator
-//
-//  Created by Abhibhav RajSingh on 23/12/24.
-//
-
 import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var loginModel: LoginModel
     @State private var selectedTab = 2
-    @State private var showDailyGoalsSetup = false
-    
+    @State private var triedAutoLogin = false
+    @State private var isLoading = true
+
     var body: some View {
-        if loginModel.loginSuccess {
-            ZStack {
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        ModernColors.background,
-                        ModernColors.surface,
-                        ModernColors.background
-                    ]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
-                
+        ZStack {
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    ModernColors.background,
+                    ModernColors.surface,
+                    ModernColors.background
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+
+            if isLoading {
+                StartLoadingView()
+            } else if loginModel.loginSuccess {
                 TabView(selection: $selectedTab) {
                     ProfileView().tag(0)
                     DishView().tag(1)
@@ -33,25 +29,88 @@ struct ContentView: View {
                     LogView().tag(3)
                     SettingsView().tag(4)
                 }
-                
                 VStack {
                     Spacer()
                     FloatTabBar(selectedIndex: $selectedTab)
                         .padding(.bottom, -12)
                 }
+            } else {
+                LoginView()
             }
-            .onAppear {
-                let setupComplete = UserDefaults.standard.bool(forKey: "isDailyGoalsSetupComplete")
-                if !setupComplete {
-                    showDailyGoalsSetup = true
+        }
+        .onAppear {
+            if !triedAutoLogin {
+                if let savedToken = UserDefaults.standard.string(forKey: "authToken") {
+                    loginModel.validateToken { isValid in
+                        DispatchQueue.main.async {
+                            loginModel.loginSuccess = isValid
+                            triedAutoLogin = true
+                            isLoading = false
+                        }
+                    }
+                } else {
+                    triedAutoLogin = true
+                    loginModel.loginSuccess = false
+                    isLoading = false
                 }
             }
-            .fullScreenCover(isPresented: $showDailyGoalsSetup) {
-                DailyGoalsSetupView()
-                    .environmentObject(loginModel)
+        }
+        .zIndex(1)
+        .transition(.opacity)
+    }
+}
+
+// Updated Loading View with LoginView Background
+struct StartLoadingView: View {
+    @State private var pulseScale: CGFloat = 1.0
+
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    ModernColors.background,
+                    ModernColors.surface,
+                    ModernColors.background
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+
+            VStack(spacing: 16) {
+                // Logo Section
+                VStack(spacing: 12) {
+                    Image(systemName: "flame.fill")
+                        .font(.system(size: 70))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [ModernColors.primary, ModernColors.accent.opacity(0.9)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .scaleEffect(pulseScale)
+                        .shadow(color: ModernColors.neonPulse.opacity(0.3), radius: 5)
+
+                    Text("MacroTracker")
+                        .font(.system(size: 36, weight: .bold))
+                        .foregroundColor(ModernColors.text)
+                        .scaleEffect(pulseScale * 0.95)
+                }
+
+                // Loading Text
+                Text("Loading...")
+                    .font(.system(size: 18, weight: .medium, design: .rounded))
+                    .foregroundColor(ModernColors.text)
             }
-        } else {
-            LoginView()
+            .animation(
+                Animation.easeInOut(duration: 1.2)
+                    .repeatForever(autoreverses: true),
+                value: pulseScale
+            )
+            .onAppear {
+                pulseScale = 1.2
+            }
         }
     }
 }
@@ -163,7 +222,7 @@ struct FloatTabItem: View {
                 withAnimation(.easeInOut(duration: 0.6)) {
                     rotation = 360
                 }
-                withAnimation(.easeInOut(duration: 1.2)/*.repeatForever(autoreverses: true)*/) {
+                withAnimation(.easeInOut(duration: 1.2)) {
                     pulse = 1.2
                 }
             } else {
