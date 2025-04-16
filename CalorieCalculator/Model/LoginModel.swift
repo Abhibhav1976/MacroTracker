@@ -227,7 +227,7 @@ class LoginModel: ObservableObject {
                     if let jsonData = try? JSONEncoder().encode(userResponse) {
                         UserDefaults.standard.set(jsonData, forKey: "userResponse")
                     }
-
+                    print("Age received in token response:", userResponse.age ?? -1)
                     // Store the token in UserDefaults
                     if let token = userResponse.token {
                         UserDefaults.standard.set(token, forKey: "authToken")

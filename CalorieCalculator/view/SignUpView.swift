@@ -8,19 +8,15 @@
 import SwiftUI
 
 struct SignUpView: View {
-    @EnvironmentObject var signUpModel: SignUpModel
+    @StateObject private var signUpModel = SignUpModel()
     @State private var username: String = ""
     @State private var displayName: String = ""
     @State private var email: String = ""
     @State private var password: String = ""
-    @State private var confirmPassword: String = ""
-    @State private var errorMessage: String? = nil
-    @State private var showingLoginView = false
-    @State private var showAlert = false
+    @State private var isLoading = false
     
     // Animation states
     @State private var isAnimating = false
-    @State private var isLoading = false
     
     var body: some View {
         NavigationStack {
@@ -76,7 +72,7 @@ struct SignUpView: View {
                                 .animation(.easeIn(duration: 0.5).delay(0.3), value: isAnimating)
                         }
                         .padding(.top, 40)
-                         
+                        
                         // Sign Up Form with staggered animations
                         VStack(spacing: 24) {
                             // Username Field
@@ -122,18 +118,8 @@ struct SignUpView: View {
                             .offset(x: isAnimating ? 0 : -200)
                             .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.4), value: isAnimating)
                             
-                            // Confirm Password Field
-                            CustomInputField(
-                                title: "Confirm Password",
-                                icon: "lock.shield.fill",
-                                text: $confirmPassword,
-                                isSecure: true
-                            )
-                            .offset(x: isAnimating ? 0 : -200)
-                            .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.5), value: isAnimating)
-                            
                             // Error Message
-                            if let errorMessage = errorMessage {
+                            if let errorMessage = signUpModel.errorMessage {
                                 Text(errorMessage)
                                     .font(.caption)
                                     .foregroundColor(ColorPalette.error)
@@ -147,25 +133,9 @@ struct SignUpView: View {
                                     isLoading = true
                                 }
                                 
-                                guard !username.isEmpty, !displayName.isEmpty, !email.isEmpty, !password.isEmpty else {
-                                    errorMessage = "All fields are required"
-                                    isLoading = false
-                    
-                                    return}
-                                
-                                guard password == confirmPassword else {
-                                    errorMessage = "Passwords do not match"
-                                    isLoading = false
-                                    return
-                                }
-                                
                                 signUpModel.signup(username: username, displayName: displayName, email: email, password: password) { result in
-                                    isLoading = false
-                                    switch result {
-                                    case .success:
-                                        showAlert = true
-                                    case .failure(let error):
-                                        errorMessage = error.localizedDescription
+                                    DispatchQueue.main.async {
+                                        isLoading = false
                                     }
                                 }
                             }) {
@@ -197,42 +167,24 @@ struct SignUpView: View {
                             .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.6), value: isAnimating)
                             
                             // Already have account link
-                            Button(action: {
-                                showingLoginView = true
-                            }) {
-                                HStack(spacing: 4) {
-                                    Text("Already have an account?")
-                                        .foregroundColor(ModernColors.muted)
-                                    Text("Log In")
-                                        .foregroundColor(ModernColors.accent)
-                                        .fontWeight(.semibold)
-                                }
+                            NavigationLink("Already have an account? Log In", destination: LoginView())
+                                .foregroundColor(ModernColors.accent)
                                 .font(.subheadline)
-                            }
-                            .opacity(isAnimating ? 1 : 0)
-                            .animation(.easeIn(duration: 0.5).delay(0.7), value: isAnimating)
+                                .opacity(isAnimating ? 1 : 0)
+                                .animation(.easeIn(duration: 0.5).delay(0.7), value: isAnimating)
                         }
                         .padding(.horizontal, 24)
                     }
                     .padding(.bottom, 32)
                 }
             }
-            .alert(isPresented: $showAlert) {
-                Alert(
-                    title: Text("Success"),
-                    message: Text("Account created successfully! Please log in."),
-                    dismissButton: .default(Text("OK")) {
-                        showingLoginView = true
-                    }
-                )
+            .navigationDestination(isPresented: $signUpModel.signUpSuccess) {
+                VerifyEmailView(email: email)
             }
-            .navigationDestination(isPresented: $showingLoginView) {
-                LoginView()
-            }
-        }
-        .onAppear {
-            withAnimation {
-                isAnimating = true
+            .onAppear {
+                withAnimation {
+                    isAnimating = true
+                }
             }
         }
     }
@@ -240,5 +192,4 @@ struct SignUpView: View {
 
 #Preview {
     SignUpView()
-        .environmentObject(SignUpModel())
 }

@@ -15,6 +15,7 @@ struct ScanFoodCameraView: View {
     @State private var selectedMealType: String = ""
     @State private var showMealTypeSelection = false
     @State var queryResult: ImageQueryResult?
+    @State private var showLimitAlert = false
 
     var body: some View {
         NavigationStack {
@@ -41,6 +42,10 @@ struct ScanFoodCameraView: View {
                         Text("Carbs: \(result.carbs)g")
                         Text("Fat: \(result.fat)g")
                             .padding(.bottom)
+                        /*Text("Details: \(result.message)")
+                            .font(.footnote)
+                            .foregroundColor(.gray)
+                         */
                     }
                     .padding()
                     .background(Color(.systemGray6))
@@ -94,6 +99,14 @@ struct ScanFoodCameraView: View {
                     self.queryResult = result
                 }
             }
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("ImageQueryLimitReachedNotification"))) { _ in
+                self.showLimitAlert = true
+            }
+            .alert("Daily Limit Reached", isPresented: $showLimitAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("You've used all your food scans for today. Please come back tomorrow.")
+            }
         }
     }
 }
@@ -140,7 +153,13 @@ struct ImagePicker: UIViewControllerRepresentable {
                             NotificationCenter.default.post(name: Notification.Name("ImageQueryResultNotification"), object: response)
                         }
                     case .failure(let error):
-                        print("Image query failed: \(error.localizedDescription)")
+                        if let nsError = error as NSError?, nsError.code == 403 {
+                            DispatchQueue.main.async {
+                                NotificationCenter.default.post(name: Notification.Name("ImageQueryLimitReachedNotification"), object: nil)
+                            }
+                        } else {
+                            print("Image query failed: \(error.localizedDescription)")
+                        }
                     }
                 }
             }

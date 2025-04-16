@@ -24,10 +24,23 @@ class SignUpModel: ObservableObject {
     typealias SignUpCompletion = (Result<SignUpResponse, Error>) -> Void
     
     func signup(username: String, displayName: String, email: String, password: String, completion: @escaping SignUpCompletion) {
+        print("Signup attempt: username=\(username), email=\(email), displayName=\(displayName)")
+        
+        guard !username.isEmpty, !displayName.isEmpty, !email.isEmpty, !password.isEmpty else {
+            DispatchQueue.main.async {
+                self.errorMessage = "All fields are required"
+                print("Validation failed: Missing fields")
+            }
+            completion(.failure(NSError(domain: "SignUpError", code: 0, userInfo: [NSLocalizedDescriptionKey: "All fields are required"])))
+            return
+        }
+
         guard let url = URL(string: "http://macrotracker.duckdns.org:8080/CalorieCalculator-1.0-SNAPSHOT/signup") else {
             DispatchQueue.main.async {
                 self.errorMessage = "Invalid URL"
+                print("Invalid URL")
             }
+            completion(.failure(NSError(domain: "SignUpError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
             return
         }
 
@@ -60,43 +73,77 @@ class SignUpModel: ObservableObject {
                 if let error = error {
                     if attempt < maxRetries {
                         attempt += 1
+                        print("Retry \(attempt) for email: \(email)")
                         performRequest()
                         return
                     } else {
                         DispatchQueue.main.async {
                             self.errorMessage = "Network error: \(error.localizedDescription)"
+                            print("Network error: \(error.localizedDescription)")
                         }
                         completion(.failure(error))
                         return
                     }
                 }
 
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    let noResponseError = NSError(domain: "SignUpError", code: 0, userInfo: [NSLocalizedDescriptionKey: "No HTTP response"])
+                    DispatchQueue.main.async {
+                        self.errorMessage = "No HTTP response"
+                        print("No HTTP response")
+                    }
+                    completion(.failure(noResponseError))
+                    return
+                }
+
+                print("HTTP status: \(httpResponse.statusCode)")
+                if let headers = httpResponse.allHeaderFields as? [String: String] {
+                    print("Response headers: \(headers)")
+                }
+
+                guard (200...299).contains(httpResponse.statusCode) else {
+                    let statusError = NSError(domain: "SignUpError", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "Server error: HTTP \(httpResponse.statusCode)"])
+                    DispatchQueue.main.async {
+                        self.errorMessage = "Server error: HTTP \(httpResponse.statusCode)"
+                        print("Server error: HTTP \(httpResponse.statusCode)")
+                    }
+                    if let data = data, let rawString = String(data: data, encoding: .utf8) {
+                        print("Raw response: \(rawString)")
+                    }
+                    completion(.failure(statusError))
+                    return
+                }
+
                 guard let data = data else {
                     let noDataError = NSError(domain: "SignUpError", code: 0, userInfo: [NSLocalizedDescriptionKey: "No data received"])
                     DispatchQueue.main.async {
                         self.errorMessage = "No data received"
+                        print("No data received")
                     }
                     completion(.failure(noDataError))
                     return
                 }
 
+                if let rawString = String(data: data, encoding: .utf8) {
+                    print("Raw response: \(rawString)")
+                } else {
+                    print("Raw response: Unable to decode data")
+                }
+
                 do {
                     let signUpResponse = try JSONDecoder().decode(SignUpResponse.self, from: data)
-
                     DispatchQueue.main.async {
-                        if signUpResponse.success {
-                            self.signUpSuccess = true
-                            self.errorMessage = nil
-                        } else {
-                            self.errorMessage = signUpResponse.message
-                        }
-                        completion(.success(signUpResponse))
+                        self.signUpSuccess = signUpResponse.success
+                        self.errorMessage = signUpResponse.success ? nil : signUpResponse.message
+                        print("Parsed response: success=\(signUpResponse.success), message=\(signUpResponse.message)")
                     }
-                } catch let decodingError {
+                    completion(.success(signUpResponse))
+                } catch {
                     DispatchQueue.main.async {
-                        self.errorMessage = "Failed to parse response: \(decodingError.localizedDescription)"
+                        self.errorMessage = "Failed to parse response: \(error.localizedDescription)"
+                        print("Parse error: \(error.localizedDescription)")
                     }
-                    completion(.failure(decodingError))
+                    completion(.failure(error))
                 }
             }.resume()
         }

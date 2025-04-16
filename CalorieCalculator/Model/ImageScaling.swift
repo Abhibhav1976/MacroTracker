@@ -74,15 +74,41 @@ extension UIImage {
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
+                if let nsError = error as NSError?, nsError.code == 403 {
+                    DispatchQueue.main.async {
+                        NotificationCenter.default.post(name: Notification.Name("ImageQueryLimitReachedNotification"), object: nil)
+                    }
+                } else {
+                    print("Image query failed: \(error.localizedDescription)")
+                }
                 completion(.failure(error))
                 return
             }
             
+            if let httpResponse = response as? HTTPURLResponse {
+                print("🔁 Server responded with status: \(httpResponse.statusCode)")
+                if let data = data {
+                    print("📨 Response data: \(String(data: data, encoding: .utf8) ?? "nil")")
+                }
+            }
+
             guard let httpResponse = response as? HTTPURLResponse,
-                  (200...299).contains(httpResponse.statusCode),
                   let data = data else {
                 let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
                 let error = NSError(domain: "ImageQueryError", code: statusCode, userInfo: [NSLocalizedDescriptionKey: "HTTP Error: \(statusCode)"])
+                
+                if statusCode == 403 {
+                    DispatchQueue.main.async {
+                        NotificationCenter.default.post(name: Notification.Name("ImageQueryLimitReachedNotification"), object: nil)
+                    }
+                }
+
+                completion(.failure(error))
+                return
+            }
+
+            guard (200...299).contains(httpResponse.statusCode) else {
+                let error = NSError(domain: "ImageQueryError", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "HTTP Error: \(httpResponse.statusCode)"])
                 completion(.failure(error))
                 return
             }
@@ -93,8 +119,10 @@ extension UIImage {
                     completion(.success(result))
                 }
             } catch {
+                print("❌ JSON decoding error: \(error)")
                 completion(.failure(error))
             }
         }.resume()
     }
 }
+
